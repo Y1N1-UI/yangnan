@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#f7f9fa">
+    <title>底部标签栏（SVG 图标版）</title>
+    <style>
+        /* ===== 口袋制图 · 设计标记 ===== */
+        :root {
+            --yn-board: #f7f9fa;   /* 图纸白 */
+            --yn-ink: #16324f;     /* 钢笔墨蓝 */
+            --yn-muted: #5f7183;   /* 辅灰 */
+            --yn-rule: #d6e0e8;    /* 规线 */
+            --yn-ultra: #2456a6;   /* 群青：选中态 */
+            --yn-badge: #e5484d;   /* 徽章红 */
+            --yn-off: #8b98a6;     /* 未选中灰 */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body.yn_body {
+            background: var(--yn-board);
+            color: var(--yn-ink);
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            line-height: 1.75;
+        }
+
+        a { color: inherit; }
+
+        a:focus-visible, button:focus-visible {
+            outline: 2px solid var(--yn-ultra);
+            outline-offset: 3px;
+        }
+
+        .yn_app {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 0 20px 140px;
+        }
+
+        .yn_topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 16px;
+            padding: 16px 0 12px;
+            border-bottom: 1px solid var(--yn-rule);
+            font-size: 0.86rem;
+        }
+
+        .yn_home-link { color: var(--yn-ink); }
+        .yn_home-link:hover { color: var(--yn-ultra); }
+
+        .yn_series { color: var(--yn-muted); }
+
+        h1 {
+            font-family: "KaiTi", "STKaiti", "楷体", serif;
+            font-size: 1.8rem;
+            line-height: 1.3;
+            padding: 26px 0 0;
+        }
+
+        .yn_lede {
+            margin-top: 12px;
+            color: var(--yn-muted);
+            font-size: 0.95rem;
+            max-width: 34em;
+        }
+
+        .yn_meta {
+            margin-top: 22px;
+            border-top: 1px solid var(--yn-ink);
+            font-size: 0.88rem;
+        }
+
+        .yn_meta > div {
+            display: flex;
+            gap: 24px;
+            padding: 8px 2px;
+            border-bottom: 1px solid var(--yn-rule);
+        }
+
+        .yn_meta dt { flex: 0 0 5.5em; color: var(--yn-muted); }
+        .yn_meta dd { color: var(--yn-ink); }
+
+        .yn_rows {
+            margin-top: 26px;
+            border-top: 1px solid var(--yn-ink);
+            font-size: 0.9rem;
+        }
+
+        .yn_row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 16px;
+            padding: 12px 2px;
+            border-bottom: 1px solid var(--yn-rule);
+        }
+
+        .yn_row b { font-weight: 700; }
+        .yn_row span { color: var(--yn-muted); font-size: 0.82rem; text-align: right; }
+
+        .yn_tip {
+            margin-top: 22px;
+            color: var(--yn-muted);
+            font-size: 0.86rem;
+        }
+
+        /* ===== 固定底部标签栏 ===== */
+        .yn_tabbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10;
+            display: flex;
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+            background: rgba(255, 255, 255, 0.96);
+            border-top: 1px solid var(--yn-rule);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+
+        .yn_tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 0;
+            border: 0;
+            background: none;
+            font-family: inherit;
+            font-size: 11px;
+            color: var(--yn-off);
+            cursor: pointer;
+            transition: color 160ms ease;
+        }
+
+        .yn_tab:hover { color: var(--yn-ink); }
+        .yn_tab.yn_active { color: var(--yn-ultra); font-weight: 600; }
+
+        .yn_icon-wrap {
+            position: relative;
+            line-height: 1;
+            display: inline-block;
+        }
+
+        /* SVG 方式：内联 svg 引用精灵图中的 symbol */
+        .yn_svgicon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+            display: block;
+        }
+
+        .yn_badge {
+            position: absolute;
+            top: -7px;
+            right: -13px;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 5px;
+            border-radius: 9px;
+            background: var(--yn-badge);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 17px;
+            text-align: center;
+        }
+
+        .yn_dot {
+            position: absolute;
+            top: -3px;
+            right: -10px;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--yn-badge);
+            box-shadow: 0 0 0 2px #fff;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .yn_tab { transition: none; }
+        }
+    </style>
+</head>
+<body class="yn_body">
+    <div class="yn_app">
+        <header class="yn_topbar">
+            <a class="yn_home-link" href="index.html">返回首页 index.html</a>
+            <span class="yn_series">图标实践（四）移动端导航</span>
+        </header>
+
+        <main>
+            <h1>底部标签栏（SVG 图标）</h1>
+            <p class="yn_lede">同一张标签栏换用 SVG 实现：iconfont.js 把整幅精灵图注入页面，每个图标用 use 引用对应的 symbol 绘制。脚本会摘掉图形上写死的填充色，让图标颜色随文字属性走。</p>
+
+            <dl class="yn_meta">
+                <div>
+                    <dt>图标来源</dt>
+                    <dd>font 目录 iconfont 项目 5238917</dd>
+                </div>
+                <div>
+                    <dt>渲染方式</dt>
+                    <dd>svg use 引用 symbol，脚本注入精灵图</dd>
+                </div>
+                <div>
+                    <dt>徽章配置</dt>
+                    <dd>数字徽章两枚，红点一枚</dd>
+                </div>
+            </dl>
+
+            <div class="yn_rows">
+                <div class="yn_row">
+                    <b>浏览</b>
+                    <span>icon-browser，右上角红点提示</span>
+                </div>
+                <div class="yn_row">
+                    <b>分类</b>
+                    <span>icon-classification，无提示</span>
+                </div>
+                <div class="yn_row">
+                    <b>视频</b>
+                    <span>icon-video，数字徽章 6</span>
+                </div>
+                <div class="yn_row">
+                    <b>喜欢</b>
+                    <span>icon-love，数字徽章 99+</span>
+                </div>
+            </div>
+
+            <p class="yn_tip">SVG 图标按矢量绘制，放大不糊；选中态的颜色变化由 CSS 的 color 加 fill currentColor 完成，这也是 SVG 方式比字体方式更灵活的地方。</p>
+        </main>
+    </div>
+
+    <!-- 固定底部标签栏 -->
+    <nav class="yn_tabbar" aria-label="页面主导航">
+        <button class="yn_tab yn_active" type="button" aria-label="浏览，有新内容">
+            <span class="yn_icon-wrap">
+                <svg class="yn_svgicon" aria-hidden="true"><use href="#icon-browser"></use></svg>
+                <span class="yn_dot"></span>
+            </span>
+            <span>浏览</span>
+        </button>
+        <button class="yn_tab" type="button" aria-label="分类">
+            <span class="yn_icon-wrap">
+                <svg class="yn_svgicon" aria-hidden="true"><use href="#icon-classification"></use></svg>
+            </span>
+            <span>分类</span>
+        </button>
+        <button class="yn_tab" type="button" aria-label="视频，6 条更新">
+            <span class="yn_icon-wrap">
+                <svg class="yn_svgicon" aria-hidden="true"><use href="#icon-video"></use></svg>
+                <span class="yn_badge">6</span>
+            </span>
+            <span>视频</span>
+        </button>
+        <button class="yn_tab" type="button" aria-label="喜欢，99 条以上更新">
+            <span class="yn_icon-wrap">
+                <svg class="yn_svgicon" aria-hidden="true"><use href="#icon-love"></use></svg>
+                <span class="yn_badge">99+</span>
+            </span>
+            <span>喜欢</span>
+        </button>
+    </nav>
+
+    <!-- iconfont SVG 精灵图：自动向页面注入含 symbol 的隐藏 svg -->
+    <script src="font/iconfont.js"></script>
+    <script>
+        // 摘掉 symbol 内写死的 fill，让图标颜色跟随 CSS 的 currentColor
+        function yn_strip_fills() {
+            var yn_paths = document.querySelectorAll('symbol path');
+            for (var yn_i = 0; yn_i < yn_paths.length; yn_i++) {
+                yn_paths[yn_i].removeAttribute('fill');
+            }
+        }
+
+        if (document.querySelector('symbol path')) {
+            yn_strip_fills();
+        } else {
+            // 精灵图在 DOMContentLoaded 时注入，此监听在其后执行
+            document.addEventListener('DOMContentLoaded', yn_strip_fills);
+        }
+
+        // 点按切换选中态
+        (function () {
+            var yn_tabs = document.querySelectorAll('.yn_tab');
+            var yn_i;
+            var yn_j;
+
+            function yn_pick(yn_tab) {
+                for (yn_j = 0; yn_j < yn_tabs.length; yn_j++) {
+                    yn_tabs[yn_j].classList.remove('yn_active');
+                }
+                yn_tab.classList.add('yn_active');
+            }
+
+            for (yn_i = 0; yn_i < yn_tabs.length; yn_i++) {
+                yn_tabs[yn_i].addEventListener('click', function () { yn_pick(this); });
+            }
+        })();
+    </script>
+</body>
+</html>

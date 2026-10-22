@@ -1,0 +1,40 @@
+/* ========== 最简单基础的基础样式 ========== */
+body{ font-family:"Microsoft YaHei","PingFang SC","SimSun",sans-serif; line-height:1.8; margin:0; padding:20px 16px; color:#000; }
+.wrap{ max-width:960px; margin:0 auto; }
+h1{ font-size:26px; text-align:center; margin:10px 0 4px; }
+h2{ font-size:20px; border-bottom:2px solid #000; padding-bottom:4px; margin:36px 0 12px; }
+h3{ font-size:17px; margin:24px 0 8px; }
+p{ margin:6px 0; }
+ul{ padding-left:24px; }
+pre{ background:#f5f5f5; border:1px solid #ccc; padding:10px 12px; overflow-x:auto; font-family:Consolas,"Courier New",monospace; font-size:13px; line-height:1.6; white-space:pre; }
+code{ background:#f0f0f0; border:1px solid #ddd; padding:0 4px; font-family:Consolas,"Courier New",monospace; font-size:13px; }
+pre code{ background:none; border:none; padding:0; }
+table{ border-collapse:collapse; width:100%; margin:10px 0 16px; }
+th,td{ border:1px solid #000; padding:6px 10px; font-size:14px; vertical-align:top; }
+th{ background:#eee; }
+.meta{ text-align:center; font-size:14px; margin:8px 0 4px; }
+.fill{ display:inline-block; min-width:60px; border-bottom:1px solid #000; }
+.warn{ border:1px solid #000; background:#fffbe6; padding:8px 12px; font-size:14px; margin:10px 0; }
+.answer{ border:1px solid #000; background:#f2f2f2; padding:8px 12px; margin:8px 0; font-size:14px; }
+.bug{ margin:12px 0; padding:8px 12px; border:1px solid #ccc; background:#fafafa; font-size:14px; }
+.bug b{ color:#900; }
+/* ========== 第2.2题：6张图文卡片（演示区，答案见上方表格） ========== */
+.box{ display:flex; flex-wrap:wrap; gap:10px; padding:10px 0; }
+.box li{ width:300px; list-style:none; position:relative; overflow:hidden; border:1px solid #ddd; }
+.box img{ width:100%; display:block; transition:all .6s; }
+.box li:hover img{ transform:scale(1.2); }
+.txt{ position:absolute; left:0; right:0; bottom:0; height:40px; overflow:hidden; background:rgba(0,0,0,.6); color:#fff; font-size:13px; padding:6px 10px; box-sizing:border-box; transition:height .6s; }
+.txt h4{ margin:0; font-size:14px; }
+.txt p{ margin:2px 0 0; font-size:12px; color:#ddd; }
+.box li:hover .txt{ height:90px; }
+.box li:nth-child(odd):hover .txt{ height:100%; }
+/* ========== 第2.3题：flex两栏演示 ========== */
+.layout{ max-width:1200px; display:flex; gap:8px; border:1px solid #000; padding:10px; }
+.layout .m{ flex:0 0 792px; border:1px solid #999; background:#f5f5f5; text-align:center; padding:20px 10px; }
+.layout .a{ flex:0 0 400px; border:1px solid #999; background:#fafafa; text-align:center; padding:20px 10px; }
+@media (max-width:900px){ .layout{ flex-wrap:wrap; } .layout .m,.layout .a{ flex:1 1 100%; } }
+/* ========== 第4题：回到顶部按钮（纯CSS，无JS） ========== */
+.back-top{ position:fixed; left:20px; bottom:20px; background:#000; color:#fff; opacity:.5; width:48px; height:48px; border-radius:50%; text-decoration:none; display:flex; align-items:center; justify-content:center; font-size:20px; z-index:999; transition:all .3s; }
+.back-top:hover{ opacity:1; transform:scale(1.1); }
+/* ========== 页脚 ========== */
+footer{ margin-top:40px; padding-top:10px; border-top:1px solid #999; text-align:center; font-size:13px; color:#333; }

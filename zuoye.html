@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H5语义布局 + 溢出/隐藏过渡动画 实践作业（答案）</title>
+<link rel="stylesheet" href="./zuoye.css">
+</head>
+<body id="top">
+<!-- 第4题：回到顶部按钮，本页左下角可直接点击验证（纯CSS，无JS） -->
+<a class="back-top" href="#top" title="回到顶部">↑</a>
+<header>
+<div class="wrap">
+<h1>H5语义布局 + 溢出/隐藏过渡动画 实践作业</h1>
+</header>
+<main class="wrap">
+<h2>第一部分：看代码找错</h2>
+
+<h3>三处bug和答案</h3>
+<div class="bug">
+<p><b>Bug ①：图片放大跑出卡片，盖住旁边卡片</b></p>
+<p>错误位置：<code>.box li{...}</code> 缺少 <code>overflow:hidden</code>，图片 scale(1.2) 放大后溢出了 li。</p>
+<p>修改后代码行：</p>
+<pre><code>.box li{ width:300px; overflow:hidden; }   /* 裁切放大后的图片，防止溢出遮挡相邻卡片 */</code></pre>
+</div>
+<div class="bug">
+<p><b>Bug ②：文字展开只有移入有动画，鼠标移出无过渡效果</b></p>
+<p>错误位置：<code>transition:all .6s</code> 写在了 <code>.box li:hover img</code>（hover状态）里。鼠标移出时 hover 规则失效，transition 也随之消失，所以没有移出动画。</p>
+<p>修改后代码行：</p>
+<pre><code>.box img{ width:100%; transition:all .6s; }   /* transition 移到默认选择器，移入移出都有动画 */</code></pre>
+</div>
+<div class="bug">
+<p><b>Bug ③：卡片布局排版错乱</b></p>
+<p>错误位置：<code>.txt</code> 用了 <code>position:absolute</code>，但父级 <code>.box li</code> 没有 <code>position:relative</code>（缺少"子绝父相"），文字条只能相对页面根元素定位，掉出卡片。</p>
+<p>修改后代码行：</p>
+<pre><code>.box li{ width:300px; position:relative; }   /* 子绝父相：作为 .txt 的定位参照 */</code></pre>
+</div>
+<h3>修正后的完整代码</h3>
+<pre><code>.box{
+  display:flex;               /* 父容器开启 flex */
+  gap:10px;                   /* 卡片间隙用 gap */
+}
+.box li{
+  width:300px;
+  overflow:hidden;            /* ① 裁切放大后的图片，防止遮挡相邻卡片 */
+  position:relative;          /* ③ 子绝父相：作为 .txt 的定位参照 */
+}
+.box img{
+  width:100%;
+  display:block;
+  transition:all .6s;         /* ② transition 写在默认选择器：移入移出都有动画 */
+}
+.box li:hover img{
+  transform:scale(1.2);       /* hover 只做缩放，过渡由默认状态提供 */
+}
+.txt{
+  position:absolute;          /* 子绝父相：相对 .box li 定位 */
+  left:0; right:0;            /* 撑满卡片底部 */
+  bottom:0;
+  height:40px;
+  background:rgba(0,0,0,.6);
+}</code></pre>
+<h2>第二部分：补全代码</h2>
+<h3>2.1 语义标签填空</h3>
+<table>
+<tr><th>页面位置</th><th>语义标签</th></tr>
+<tr><td>页面顶部头部区域</td><td><code>&lt;header&gt;</code></td></tr>
+<tr><td>导航条</td><td><code>&lt;nav&gt;</code></td></tr>
+<tr><td>页面唯一主要内容区</td><td><code>&lt;main&gt;</code></td></tr>
+<tr><td>侧边栏附属内容</td><td><code>&lt;aside&gt;</code></td></tr>
+<tr><td>页面底部版权页脚</td><td><code>&lt;footer&gt;</code></td></tr>
+</table>
+<h3>2.2 卡片动画补全</h3>
+<table>
+<tr><th>需要实现效果</th><th>填写关键CSS代码 / 答案</th></tr>
+<tr><td>防止放大图片溢出li容器</td><td>li添加属性：<code>overflow:hidden</code></td></tr>
+<tr><td>子绝父相，让文字条定位在卡片底部</td><td>li添加属性：<code>position:relative</code>（文字条 <code>position:absolute; bottom:0</code>）</td></tr>
+<tr><td>hover图片从原始大小放大到scale(1.2)</td><td>两个选择器：默认 <code>.box img</code>（写transition）+ 悬浮 <code>.box li:hover img</code>（写transform:scale(1.2)）</td></tr>
+<tr><td>文字高度平滑展开，移入移出都有动画。transition写在默认还是hover？为什么？</td><td>写在<strong>默认选择器</strong>上。因为 transition 写在 hover 上时，鼠标移出后 hover 规则被移除，transition 也随之消失，样式瞬间跳回原值，没有移出动画；写在默认选择器上，移入和移出两个方向都有过渡。</td></tr>
+<tr><td>奇数卡片悬浮，文字铺满整张卡片</td><td>伪类选择器：<code>:nth-child(odd)</code></td></tr>
+</table>
+<p><b>演示区（6张图文卡片，把鼠标移到卡片上查看效果：图片放大被裁切、文字条展开、第1/3/5张文字铺满整张卡片）</b></p>
+<!-- 演示区：ul.box 即作业里的 .box（flex容器，无float），li 上已写好答案中的关键属性 -->
+<ul class="box">
+<li>
+<img src="./img/1.jpg" alt="flex布局">
+<div class="txt"><h4>flex布局</h4><p>版心内两栏弹性排列，无float，间隙用gap。</p></div>
+</li>
+<li>
+<img src="./img/2.jpg" alt="语义标签">
+<div class="txt"><h4>语义标签</h4><p>header/nav/main/aside/footer各司其职。</p></div>
+</li>
+<li>
+<img src="./img/3.jpg" alt="子绝父相">
+<div class="txt"><h4>子绝父相</h4><p>父relative作参照，子absolute贴卡片底部。</p></div>
+</li>
+<li>
+<img src="./img/4.jpg" alt="overflow裁切">
+<div class="txt"><h4>overflow裁切</h4><p>图片放大被裁在卡片内，不遮挡相邻卡片。</p></div>
+</li>
+<li>
+<img src="./img/5.jpg" alt="transition过渡">
+<div class="txt"><h4>transition过渡</h4><p>写在默认选择器，移入移出都平滑。</p></div>
+</li>
+<li>
+<img src="./img/6.jpg" alt="transform缩放">
+<div class="txt"><h4>transform缩放</h4><p>只改视觉，不占文档流位置。</p></div>
+</li>
+</ul>
+<h3>2.3 flex两栏布局填空</h3>
+<div class="answer">
+<p>父容器开启flex：<code>display:flex;</code></p>
+<p>设置两栏间隙8px的属性：<code>gap:8px;</code>（禁止margin）</p>
+<p>版心1200px = 主内容792px + 间隙8px + 侧边栏400px</p>
+</div>
+<h2>第三部分：手写原理简答</h2>
+<!-- 替换成图片 -->
+<img src="./img/手写.jpg" alt="手写原理简答" style="width:100%;display:block;">
+
+<h2>第四部分：扩展挑战</h2>
+<pre><code>&lt;!-- HTML：普通锚点链接即可回到顶部，无需JS --&gt;
+&lt;a class="back-top" href="#top" title="回到顶部"&gt;↑&lt;/a&gt;
+.back-top{
+  position:fixed;          /* 固定在视口左下角 */
+  left:20px; bottom:20px;
+  width:48px; height:48px;
+  border-radius:50%;
+  background:#000; color:#fff;
+  opacity:.5;              /* 初始半透明 */
+  transition:all .3s;
+  z-index:999;             /* 浮于页面内容之上 */
+}
+.back-top:hover{
+  opacity:1;               /* hover完全不透明 */
+  transform:scale(1.1);    /* 同时轻微放大 */
+}</code></pre>
+</main>
+<footer>
+    0531 杨楠
+</footer>
+</body>
+</html>

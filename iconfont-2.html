@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucide SVG 图标：线条里的图标</title>
+    <style>
+        /* ===== 制图桌 · 设计标记 ===== */
+        :root {
+            --yn-board: #f7f9fa;   /* 图纸白 */
+            --yn-ink: #16324f;     /* 钢笔墨蓝 */
+            --yn-muted: #5f7183;   /* 辅灰 */
+            --yn-grid: #e2eaf0;    /* 坐标纸网格 */
+            --yn-line: #d6e0e8;    /* 桌面规线 */
+            --yn-ultra: #2456a6;   /* 群青：焦点与强调 */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body.yn_body {
+            background: var(--yn-board);
+            color: var(--yn-ink);
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            line-height: 1.75;
+        }
+
+        /* 标题用楷体，贴合线稿手绘的气质 */
+        .yn_desk h1, .yn_desk h2 {
+            font-family: "KaiTi", "STKaiti", "楷体", serif;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        a { color: inherit; }
+
+        a:focus-visible {
+            outline: 2px solid var(--yn-ultra);
+            outline-offset: 3px;
+        }
+
+        .yn_desk {
+            max-width: 1060px;
+            margin: 0 auto;
+            padding: 30px 28px 48px;
+        }
+
+        .yn_masthead {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--yn-line);
+            font-size: 0.86rem;
+        }
+
+        .yn_home-link { color: var(--yn-ink); }
+        .yn_home-link:hover { color: var(--yn-ultra); }
+
+        .yn_series { color: var(--yn-muted); }
+
+        /* ===== 主制图板：坐标纸上的自绘罗盘 ===== */
+        .yn_hero {
+            display: grid;
+            grid-template-columns: minmax(280px, 400px) 1fr;
+            gap: 56px;
+            align-items: center;
+            padding: 64px 0 72px;
+        }
+
+        .yn_board {
+            position: relative;
+            height: 320px;
+            border: 1px solid var(--yn-ink);
+            background-image:
+                linear-gradient(var(--yn-grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--yn-grid) 1px, transparent 1px);
+            background-size: 24px 24px;
+            background-position: center;
+        }
+
+        /* 图钉：把图纸钉在桌面上的四个角 */
+        .yn_board i {
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            background: var(--yn-ink);
+            border-radius: 50%;
+        }
+
+        .yn_pin-tl { top: 8px; left: 8px; }
+        .yn_pin-tr { top: 8px; right: 8px; }
+        .yn_pin-bl { bottom: 8px; left: 8px; }
+        .yn_pin-br { bottom: 8px; right: 8px; }
+
+        .yn_board > svg {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 170px;
+            height: 170px;
+            color: var(--yn-ink);
+        }
+
+        .yn_hero h1 {
+            font-size: clamp(2rem, 4.6vw, 3.2rem);
+        }
+
+        .yn_lede {
+            max-width: 34em;
+            margin-top: 18px;
+            color: var(--yn-muted);
+            font-size: 1.02rem;
+        }
+
+        .yn_meta {
+            margin-top: 30px;
+            border-top: 1px solid var(--yn-ink);
+            font-size: 0.9rem;
+        }
+
+        .yn_meta > div {
+            display: flex;
+            gap: 28px;
+            padding: 9px 2px;
+            border-bottom: 1px solid var(--yn-line);
+        }
+
+        .yn_meta dt { flex: 0 0 5.5em; color: var(--yn-muted); }
+        .yn_meta dd { color: var(--yn-ink); }
+
+        /* ===== 分节 ===== */
+        .yn_section {
+            border-top: 1px solid var(--yn-ink);
+            padding: 26px 0 40px;
+        }
+
+        .yn_section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 20px;
+            margin-bottom: 22px;
+        }
+
+        .yn_section h2 { font-size: 1.3rem; }
+
+        .yn_note {
+            color: var(--yn-muted);
+            font-size: 0.88rem;
+            text-align: right;
+            max-width: 30em;
+        }
+
+        /* 线稿集：图形直接落在坐标纸上，不再围卡片 */
+        .yn_tracing {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+            gap: 8px 0;
+            background-image:
+                linear-gradient(var(--yn-grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--yn-grid) 1px, transparent 1px);
+            background-size: 26px 26px;
+            border: 1px solid var(--yn-line);
+            padding: 26px 10px;
+        }
+
+        .yn_sketch { text-align: center; padding: 10px 4px; }
+
+        .yn_sketch svg {
+            width: 30px;
+            height: 30px;
+            color: var(--yn-ink);
+        }
+
+        .yn_sketch span {
+            display: block;
+            margin-top: 10px;
+            color: var(--yn-muted);
+            font-size: 0.72rem;
+            word-break: break-all;
+        }
+
+        /* ===== 线宽阶梯：同一图形，四种笔锋 ===== */
+        .yn_widths {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 40px;
+            padding: 6px 2px 4px;
+        }
+
+        .yn_pen { text-align: center; }
+
+        .yn_pen svg {
+            display: block;
+            margin: 0 auto 12px;
+            width: 44px;
+            height: 44px;
+            color: var(--yn-ink);
+        }
+
+        .yn_pen span {
+            color: var(--yn-muted);
+            font-size: 0.74rem;
+        }
+
+        /* ===== 尺寸与旋转 ===== */
+        .yn_scales {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 36px;
+            padding: 6px 2px 4px;
+        }
+
+        .yn_scale { text-align: center; }
+
+        .yn_scale svg {
+            display: block;
+            margin: 0 auto 12px;
+            color: var(--yn-ink);
+        }
+
+        .yn_scale-xs svg { width: 16px; height: 16px; }
+        .yn_scale-sm svg { width: 24px; height: 24px; }
+        .yn_scale-md svg { width: 36px; height: 36px; }
+        .yn_scale-lg svg { width: 52px; height: 52px; }
+        .yn_scale-xl svg { width: 72px; height: 72px; }
+
+        .yn_scale span, .yn_pen-label {
+            color: var(--yn-muted);
+            font-size: 0.74rem;
+        }
+
+        .yn_turn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 26px;
+            color: var(--yn-muted);
+            font-size: 0.88rem;
+        }
+
+        .yn_turn svg {
+            width: 22px;
+            height: 22px;
+            color: var(--yn-ink);
+            animation: yn_rotate 1.4s linear infinite;
+        }
+
+        @keyframes yn_rotate { to { transform: rotate(360deg); } }
+
+        /* ===== 页面加载的唯一编排时刻：罗盘逐笔自绘 ===== */
+        .yn_draw svg :is(path, circle, line, polyline, rect) {
+            stroke-dasharray: 100;
+            animation: yn_draw 1.5s ease-out both;
+        }
+
+        .yn_draw svg :is(path, circle, line, polyline, rect):nth-child(2) { animation-delay: 250ms; }
+        .yn_draw svg :is(path, circle, line, polyline, rect):nth-child(3) { animation-delay: 500ms; }
+
+        @keyframes yn_draw {
+            from { stroke-dashoffset: 100; }
+            to { stroke-dashoffset: 0; }
+        }
+
+        .yn_hero-text > *, .yn_board {
+            animation: yn_rise 700ms ease-out both;
+        }
+
+        .yn_board { animation-delay: 120ms; }
+
+        @keyframes yn_rise {
+            from { opacity: 0; transform: translateY(14px); }
+        }
+
+        /* ===== 页脚 ===== */
+        .yn_footer {
+            border-top: 1px solid var(--yn-line);
+            padding-top: 18px;
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            font-size: 0.86rem;
+            color: var(--yn-muted);
+        }
+
+        .yn_footer a { color: var(--yn-ink); }
+        .yn_footer a:hover { color: var(--yn-ultra); }
+
+        /* ===== 响应式与动效偏好 ===== */
+        @media (max-width: 760px) {
+            .yn_hero {
+                grid-template-columns: 1fr;
+                gap: 36px;
+                padding: 44px 0 52px;
+            }
+
+            .yn_board { height: 250px; }
+            .yn_board > svg { width: 130px; height: 130px; }
+            .yn_note { text-align: left; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .yn_hero-text > *, .yn_board { animation: none; }
+            .yn_draw svg :is(path, circle, line, polyline, rect) { animation: none; stroke-dashoffset: 0; }
+            .yn_turn svg { animation: none; }
+        }
+    </style>
+</head>
+<body class="yn_body">
+    <div class="yn_desk">
+        <header class="yn_masthead">
+            <a class="yn_home-link" href="index.html">返回首页 index.html</a>
+            <span class="yn_series">高级网页设计 图标实践（二）SVG 图标</span>
+        </header>
+
+        <section class="yn_hero">
+            <div class="yn_board yn_draw" id="yn_hero_board" aria-hidden="true">
+                <i class="yn_pin-tl"></i><i class="yn_pin-tr"></i>
+                <i class="yn_pin-bl"></i><i class="yn_pin-br"></i>
+                <i data-lucide="compass" id="yn_hero_icon"></i>
+            </div>
+            <div class="yn_hero-text">
+                <h1>线条里的图标</h1>
+                <p class="yn_lede">Lucide 把每个图标画在 24×24 的网格上，用两像素圆头线条勾出轮廓。页面加载后由 createIcons() 把占位元素换成内联 SVG，粗细、尺寸、颜色都交给 CSS 掌管。</p>
+                <dl class="yn_meta">
+                    <div>
+                        <dt>图标库</dt>
+                        <dd>Lucide 0.469.0</dd>
+                    </div>
+                    <div>
+                        <dt>实现方式</dt>
+                        <dd>data-lucide 占位，脚本渲染为内联 SVG</dd>
+                    </div>
+                    <div>
+                        <dt>绘制规格</dt>
+                        <dd>24×24 网格，2px 圆头描边</dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+
+        <main>
+            <section class="yn_section">
+                <div class="yn_section-head">
+                    <h2>线稿集</h2>
+                    <p class="yn_note">常用图形的线稿原样，在网格内对齐落笔。</p>
+                </div>
+                <div class="yn_tracing">
+                    <div class="yn_sketch"><i data-lucide="house"></i><span>house</span></div>
+                    <div class="yn_sketch"><i data-lucide="user"></i><span>user</span></div>
+                    <div class="yn_sketch"><i data-lucide="heart"></i><span>heart</span></div>
+                    <div class="yn_sketch"><i data-lucide="star"></i><span>star</span></div>
+                    <div class="yn_sketch"><i data-lucide="settings"></i><span>settings</span></div>
+                    <div class="yn_sketch"><i data-lucide="camera"></i><span>camera</span></div>
+                    <div class="yn_sketch"><i data-lucide="mail"></i><span>mail</span></div>
+                    <div class="yn_sketch"><i data-lucide="phone"></i><span>phone</span></div>
+                    <div class="yn_sketch"><i data-lucide="cloud"></i><span>cloud</span></div>
+                    <div class="yn_sketch"><i data-lucide="download"></i><span>download</span></div>
+                    <div class="yn_sketch"><i data-lucide="music"></i><span>music</span></div>
+                    <div class="yn_sketch"><i data-lucide="map-pin"></i><span>map-pin</span></div>
+                    <div class="yn_sketch"><i data-lucide="search"></i><span>search</span></div>
+                    <div class="yn_sketch"><i data-lucide="bell"></i><span>bell</span></div>
+                    <div class="yn_sketch"><i data-lucide="calendar"></i><span>calendar</span></div>
+                    <div class="yn_sketch"><i data-lucide="image"></i><span>image</span></div>
+                </div>
+            </section>
+
+            <section class="yn_section">
+                <div class="yn_section-head">
+                    <h2>线宽阶梯</h2>
+                    <p class="yn_note">同一枚图形，四种笔锋，线条粗细即字重。</p>
+                </div>
+                <div class="yn_widths">
+                    <div class="yn_pen" data-yn-width="1"><i data-lucide="message-square"></i><span>1</span></div>
+                    <div class="yn_pen" data-yn-width="1.5"><i data-lucide="message-square"></i><span>1.5</span></div>
+                    <div class="yn_pen" data-yn-width="2"><i data-lucide="message-square"></i><span>2</span></div>
+                    <div class="yn_pen" data-yn-width="2.5"><i data-lucide="message-square"></i><span>2.5</span></div>
+                </div>
+            </section>
+
+            <section class="yn_section">
+                <div class="yn_section-head">
+                    <h2>尺寸与旋转</h2>
+                    <p class="yn_note">SVG 的宽高由 CSS 决定，与显示质量无关。</p>
+                </div>
+                <div class="yn_scales">
+                    <div class="yn_scale yn_scale-xs"><i data-lucide="sun"></i><span>16</span></div>
+                    <div class="yn_scale yn_scale-sm"><i data-lucide="sun"></i><span>24</span></div>
+                    <div class="yn_scale yn_scale-md"><i data-lucide="sun"></i><span>36</span></div>
+                    <div class="yn_scale yn_scale-lg"><i data-lucide="sun"></i><span>52</span></div>
+                    <div class="yn_scale yn_scale-xl"><i data-lucide="sun"></i><span>72</span></div>
+                </div>
+                <p class="yn_turn">
+                    <i data-lucide="loader"></i>
+                    <span>loader 图形持续旋转，示意加载之中。</span>
+                </p>
+            </section>
+        </main>
+
+        <footer class="yn_footer">
+            <a href="index.html">返回首页 index.html</a>
+            <span>杨楠的《高级网页设计》课堂实践</span>
+        </footer>
+    </div>
+
+    <!-- 本地化的 Lucide 0.469.0 脚本 -->
+    <script src="cdn/lucide/lucide.min.js"></script>
+    <script>
+        // 把所有带 data-lucide 属性的元素替换为内联 SVG
+        lucide.createIcons();
+
+        (function () {
+            // 主制图板：为罗盘的每一笔记录长度，交给 CSS 逐笔描出
+            // 注意：createIcons 会用 svg 直接替换占位元素，因此 yn_hero_icon 就是 svg 本体
+            var yn_heroSvg = document.getElementById('yn_hero_icon');
+            var yn_i;
+            var yn_shapes;
+
+            if (yn_heroSvg && yn_heroSvg.tagName.toLowerCase() === 'svg') {
+                yn_shapes = yn_heroSvg.querySelectorAll('path, circle, line, polyline, rect');
+                for (yn_i = 0; yn_i < yn_shapes.length; yn_i++) {
+                    yn_shapes[yn_i].setAttribute('pathLength', '100');
+                }
+                document.getElementById('yn_hero_board').classList.add('yn_draw');
+            }
+
+            // 线宽阶梯：按 data-yn-width 改写对应 SVG 的描边宽度
+            var yn_pens = document.querySelectorAll('[data-yn-width]');
+            for (yn_i = 0; yn_i < yn_pens.length; yn_i++) {
+                var yn_penSvg = yn_pens[yn_i].querySelector('svg');
+                if (yn_penSvg) {
+                    yn_penSvg.setAttribute('stroke-width', yn_pens[yn_i].getAttribute('data-yn-width'));
+                }
+            }
+        })();
+    </script>
+</body>
+</html>

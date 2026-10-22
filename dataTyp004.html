@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据类型和运算符</title>
+    <style>
+        /* 网页整体样式 */
+        body {
+            background-color: black; /* 背景黑色 */
+            color: white; /* 默认字体白色 */
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+        }
+        /* 游戏数字格子样式 */
+        div[style*="grid"] > div {
+            color: red; /* 游戏数字红色 */
+            border: 1px solid #444;
+            padding: 12px;
+            text-align: center;
+            font-size: 18px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container">
+        
+    </div>
+<script>
+    var a = 10,b = 4;
+    //控制台输出
+    console.log(a++);
+    console.log(a-b>0?a:b);//三元运算符 条件?表达式1:表达式2 如果条件为true，执行表达式1，否则执行表达式2 
+    console.log(true&&false,true||false,!true);//逻辑运算符 与：true且true为true，false且false为false，false且true为false，true且false为false
+    var str = 'hello world',num = 10,ble = true,ud,obj = {name:'张三',age:20},arr = [1,2,3,4,5];
+    console.log(typeof str,typeof num,typeof ble,typeof ud,typeof obj,typeof arr);
+    //浮点小数不能用二进制精确存储
+    //JS不能用==或者===来比较浮点数，因为它们的精度问题
+    console.log(0.1+0.2==0.3);
+    //字符类型转换，+将数字转换为字符串，-将字符串转换为数字
+    console.log('1'+1,1-'1','11'+1-1);
+    //NaN不是一个数字，NaN是一个特殊的值，表示不是一个数字
+    //NaN和任何变量都不相等，包括它自己
+    console.log("wangyao"-1);
+    console.log(NaN==NaN);
+    //parseInt向下取整，将字符串转换为整数
+    console.log(parseInt('12.9'));
+    //如何判断一个数是不是整数
+    //console.log(Number.isInteger(12));
+    //写一个数7游戏，100个数以内，数字中包含7或者是7的倍数不显示，在网页中显示，网格布局展示
+        var grid = document.createElement('div');
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(10, 1fr)';
+    grid.style.gap = '10px';
+    document.body.appendChild(grid);
+    for(var i=1;i<=100;i++){
+        if(i%7==0||i.toString().indexOf('7')!=-1){
+            continue;
+        }
+        var cell = document.createElement('div');
+        cell.textContent = i;
+        grid.appendChild(cell);
+    }
+</script>
+</body>
+</html>

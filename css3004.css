@@ -1,0 +1,119 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.parent {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    max-width: 760px;
+    margin: 0 auto;
+}
+h2{
+    text-align: center;
+    margin: 10px;
+    grid-column: span 4;
+}
+.box{
+    width: 160px;
+    height: 160px;
+    background: blue;
+    color: white;
+    font-size: 60px;
+    text-align: center;
+    line-height: 160px;
+    transition: all .8s;
+    /* 动画forwards是动画结束时的状态, 保持在最后一帧 */
+    animation: boxIn 1s ease forwards;
+}
+/* class为box的元素，并且他是父元素的第二个孩子 */
+.box:nth-child(2){
+    background: red;
+    font-size: 120px;
+}
+/* 鼠标悬停在第3个元素上时,添加圆角效果 */
+.box:nth-child(3):hover{
+    border-radius: 50%;
+}
+/* 鼠标悬停在第4个元素上时,添加阴影效果 */
+.box:nth-child(4):hover{
+    box-shadow: 10px 10px 10px #f00;
+}
+/* nth-of-type(4)是class为box的第4个元素 */
+.box:nth-of-type(4):hover{
+    text-shadow: 10px 10px 10px yellow;
+}
+.box:nth-of-type(5):hover{
+    background: linear-gradient(to right, red, green, orange);
+}
+.box:nth-of-type(6):hover{
+    background: radial-gradient(circle, red, green, orange);
+}
+.box:nth-of-type(7):hover{
+    /* 旋转180度 */
+    transform: rotateY(180deg);
+}
+.box:nth-of-type(8):hover{
+    /* 平移50px */
+    transform: translate(50px, 50px);
+}
+.box:nth-of-type(9):hover{
+    /* 倾斜45度 */
+    transform: skew(45deg, 45deg);
+}
+.box:nth-last-child(3):hover{
+    /* 缩放0.5倍 */
+    transform: scale(0.5);
+}
+.box:nth-last-child(2):hover{
+    /* 旋转45度, 缩放0.5倍 */
+    transform: rotate(45deg) scale(0.5);
+}
+/* .box:last-child:hover::after{
+    content: "@";
+    color: yellow;
+} */
+.box:last-child:hover::before{
+    content: "#";
+    color: orange;
+}
+.box:nth-child(even)::first-letter{
+    color: purple;
+}
+
+@keyframes boxIn {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+.box:nth-child(2){
+    animation-delay: 0.1s;
+}
+.box:nth-child(3){
+    animation-delay: 0.2s;
+}
+.box:nth-child(4){
+    animation-delay: 0.3s;
+}
+.box:nth-child(5){
+    animation-delay: 0.4s;
+}
+.box:nth-child(6){
+    animation-delay: 0.5s;
+}
+.box:nth-child(7){
+    animation-delay: 0.6s;
+}
+.box:nth-child(8){
+    animation-delay: 0.7s;
+}  
+.box:nth-child(9){
+    animation-delay: 0.8s;
+}
+
