@@ -65,3 +65,21 @@
 **提示词内容：**
 
 > 之前的那个指令地址错误，忽略不看，只执行：创建skill:提交项目：使用git commit并push当前项目到`https://gitee.com/yang--nan/yang.git`
+
+## 2026-10-26 | 模型: GLM-5.3-Flash
+
+**提示词内容：**
+
+> `d:\gjwy\531yangnan/data.js#L1-61`根据这个数据，补充完善`d:\gjwy\531yangnan/starter-level1.html#L1-304`这个代码，要求实现的效果像`https://spontaneous-valkyrie-4e4229.netlify.app/target`
+
+## 2026-10-29 | 模型: GLM-5.3-Flash
+
+**提示词内容：**
+
+> 创建技能skill：提交到github，将本项目提交commit并push到`https://github.com/Y1N1-UI/yangnan.git`，使用已设置公钥。
+
+## 2026-10-29 | 模型: GLM-5.3-Flash
+
+**提示词内容：**
+
+> 好的，执行提交推送
