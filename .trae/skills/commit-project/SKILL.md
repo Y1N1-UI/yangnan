@@ -41,7 +41,7 @@ description: 把当前项目的改动用 git 提交并推送到 Gitee 远程仓�
 
 5. **推送**：
    - 首次推送该分支：`git push -u origin <当前分支>`
-   - 之后的常规推送：`git push`
+   - 之后的常规推送：`git push origin <当前分支>`（必须显式指定 origin；本仓库 master 可能跟踪 GitHub，裸 `git push` 会误推到 GitHub）
    - 推送被拒绝（远端有新提交）时：先 `git pull --rebase origin <分支>` 再推送；出现冲突则停下，展示冲突文件并询问用户如何处理。
    - 任何时候都禁止 `--force` 强推；确有必要时必须先向用户说明风险并获得明确同意。
 

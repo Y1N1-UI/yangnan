@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<!--
+  作者：杨楠
+  建立时间：2026-11-02
+  使用模型：GLM-5.3-Flash
+  功能：新闻选项卡页面 —— 国内 / 省内 / 国际 / 最热四组新闻的 Tab 切换，
+        选项卡逻辑由 js/tab-news.js 中的通用组件实现（可复用）
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新闻选项卡 · 杨楠的《高级网页设计》课堂实践</title>
+<style>
+  /* 页面基础：报纸风格的暖纸底色 + 油墨黑 */
+  :root {
+    --yn-ink: #1f2733;
+    --yn-ink-soft: #6b7280;
+    --yn-line: #e5e2d9;
+    --yn-paper: #faf8f3;
+    --yn-card: #ffffff;
+    --yn-accent: #c0392b;
+    --yn-accent-soft: #fdf0ee;
+    --yn-radius: 12px;
+    --yn-shadow: 0 10px 30px rgba(31, 39, 51, 0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+    background: var(--yn-paper);
+    color: var(--yn-ink);
+    line-height: 1.7;
+    padding: 32px 16px;
+    min-height: 100vh;
+  }
+
+  /* 页头 */
+  .yn_header { max-width: 760px; margin: 0 auto 20px; }
+  .yn_title { font-size: 24px; letter-spacing: 2px; }
+  .yn_subtitle { color: var(--yn-ink-soft); font-size: 13px; margin-top: 4px; }
+  .yn_home-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: var(--yn-accent);
+    font-size: 14px;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+  }
+  .yn_home-link:hover { opacity: 0.75; }
+
+  /* 选项卡卡片 */
+  .yn_tabs {
+    max-width: 760px;
+    margin: 0 auto;
+    background: var(--yn-card);
+    border: 1px solid var(--yn-line);
+    border-radius: var(--yn-radius);
+    box-shadow: var(--yn-shadow);
+    overflow: hidden;
+  }
+
+  /* 标签栏：底部一条共用细线，选中项用红色短下划线压住 */
+  .yn_tab-bar {
+    display: flex;
+    border-bottom: 1px solid var(--yn-line);
+    background: #fcfbf7;
+  }
+  .yn_tab-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 14px 8px;
+    font-size: 15px;
+    color: var(--yn-ink-soft);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.18s;
+  }
+  .yn_tab-btn:hover { color: var(--yn-ink); }
+  .yn_tab-btn::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -1px;
+    width: 0;
+    height: 3px;
+    background: var(--yn-accent);
+    transform: translateX(-50%);
+    transition: width 0.22s ease;
+  }
+  .yn_tab-btn.yn_active {
+    color: var(--yn-accent);
+    font-weight: 700;
+  }
+  .yn_tab-btn.yn_active::after { width: 56px; }
+  .yn_tab-btn:focus-visible {
+    outline: 2px solid var(--yn-accent);
+    outline-offset: -2px;
+  }
+
+  /* 面板：默认隐藏，加 yn_show 显示 */
+  .yn_tab-panel { display: none; padding: 18px 22px 22px; }
+  .yn_tab-panel.yn_show { display: block; animation: yn_fade 0.28s ease; }
+  @keyframes yn_fade {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 新闻列表 */
+  .yn_news-item {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--yn-line);
+    font-size: 14px;
+  }
+  .yn_news-item:last-child { border-bottom: none; }
+  .yn_news-tag {
+    flex: none;
+    font-size: 11px;
+    color: var(--yn-accent);
+    background: var(--yn-accent-soft);
+    border-radius: 4px;
+    padding: 1px 7px;
+  }
+  .yn_news-item a { color: var(--yn-ink); text-decoration: none; }
+  .yn_news-item a:hover { color: var(--yn-accent); text-decoration: underline; }
+  .yn_news-date { margin-left: auto; flex: none; color: var(--yn-ink-soft); font-size: 12px; }
+
+  @media (max-width: 520px) {
+    .yn_tab-btn { font-size: 13px; padding: 12px 4px; }
+    .yn_news-date { display: none; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="yn_header">
+    <h1 class="yn_title">新闻选项卡</h1>
+    <p class="yn_subtitle">Tab 切换示例 · 选项卡逻辑复用 js/tab-news.js · 事件监听 + 选中状态切换</p>
+    <a class="yn_home-link" href="index.html">← 返回首页 index.html</a>
+  </header>
+
+  <!-- 选项卡容器：class="yn_tabs" 会被 js/tab-news.js 自动初始化 -->
+  <section class="yn_tabs" id="yn_news_tabs">
+    <!-- 标签栏：data-yn-tab 指向对应面板的 id -->
+    <div class="yn_tab-bar" role="tablist">
+      <button class="yn_tab-btn yn_active" role="tab" data-yn-tab="yn_panel_domestic">国内新闻</button>
+      <button class="yn_tab-btn" role="tab" data-yn-tab="yn_panel_province">省内新闻</button>
+      <button class="yn_tab-btn" role="tab" data-yn-tab="yn_panel_world">国际新闻</button>
+      <button class="yn_tab-btn" role="tab" data-yn-tab="yn_panel_hot">最热新闻</button>
+    </div>
+
+    <!-- 面板：默认显示国内新闻 -->
+    <div class="yn_tab-panel yn_show" id="yn_panel_domestic" role="tabpanel">
+      <div class="yn_news-item"><span class="yn_news-tag">要闻</span><a href="#yn_panel_domestic">全国春季农业生产工作稳步推进，粮食安全基础持续巩固</a><span class="yn_news-date">11-01</span></div>
+      <div class="yn_news-item"><span class="yn_news-tag">科技</span><a href="#yn_panel_domestic">我国自主研发的新一代 supercomputer 集群正式投入运行</a><span class="yn_news-date">11-01</span></div>
+      <div class="yn_news-item"><span class="yn_news-tag">民生</span><a href="#yn_panel_domestic">多地推出便民新举措，政务服务实现"一网通办"再升级</a><span class="yn_news-date">10-31</span></div>
+      <div class="yn_news-item"><span class="yn_news-tag">教育</span><a href="#yn_panel_domestic">职业教育产教融合推进会召开，部署下一阶段重点任务</a><span class="yn_news-date">10-31</span></div>
+    </div>
+
+    <div class="yn_tab-panel" id="yn_panel_province" role="tabpanel">
+      <div class="yn_news-item"><span class="yn_news-tag">本省</span><a href="#yn_panel_province">我省数字经济发展论坛开幕，多家企业签署合作协议</a><span class="yn_news-date">11-01</span></div>
+      <div class="yn_news-item"><span class="yn_news-tag">交通</span><a href="#yn_panel_province">省内新高速路段建成通车，群众出行更加便捷</a><span class="yn_news-date">10-30</span></div>
+      <div class="yn_news-item"><span class="yn_news-tag">文旅</span><a href="#yn_panel_province">秋冬季文化旅游季启动，推出多条精品游览线路</a><span class="yn_news-date">10-30</span></div>
+      <div class="yn_news-item"><span class="yn_news-tag">民生</span><a href="#yn_panel_province">全省高校课堂实践教学成果展在我市顺利举行</a><span class="yn_news-date">10-29</span></div>
+    </div>
+
+    <div class="yn_tab-panel" id="yn_panel_world" role="tabpanel">
+      <div class="yn_news-item"><span class="yn_news-tag">国际</span><a href="#yn_panel_world">联合国气候变化大会闭幕，与会各方就减排目标达成共识</a><span class="yn_news-date">11-01</span></div>
+      <div class="yn_news-item"><span class="yn_news-tag">经济</span><a href="#yn_panel_world">多国央行公布最新利率决议，全球金融市场平稳运行</a><span class="yn_news-date">10-31</span></div>
+      <div class="yn_news-item"><span class="yn_news-tag">科技</span><a href="#yn_panel_world">国际航天合作项目取得新进展，深空探测任务持续推进</a><span class="yn_news-date">10-31</span></div>
+      <div class="yn_news-item"><span class="yn_news-tag">体育</span><a href="#yn_panel_world">世界大学生运动会筹备工作有序进行，赛事场馆全部就绪</a><span class="yn_news-date">10-30</span></div>
+    </div>
+
+    <div class="yn_tab-panel" id="yn_panel_hot" role="tabpanel">
+      <div class="yn_news-item"><span class="yn_news-tag">热榜 1</span><a href="#yn_panel_hot">新闻选项卡交互实现思路解析：事件监听与状态切换</a><span class="yn_news-date">11-01</span></div>
+      <div class="yn_news-item"><span class="yn_news-tag">热榜 2</span><a href="#yn_panel_hot">前端课堂实践热度榜：原生 JS 组件化开发受关注</a><span class="yn_news-date">11-01</span></div>
+      <div class="yn_news-item"><span class="yn_news-tag">热榜 3</span><a href="#yn_panel_hot">一周科技热词盘点：大模型、智能终端与开源生态</a><span class="yn_news-date">10-31</span></div>
+      <div class="yn_news-item"><span class="yn_news-tag">热榜 4</span><a href="#yn_panel_hot">校园新闻热搜：网页设计课程作品展示人气爆棚</a><span class="yn_news-date">10-31</span></div>
+    </div>
+  </section>
+
+  <!-- 外部引用 js 文件夹中的通用选项卡组件 -->
+  <script src="js/tab-news.js"></script>
+</body>
+</html>

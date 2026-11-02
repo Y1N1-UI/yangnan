@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<!--
+  作者：杨楠
+  建立时间：2026-11-02
+  使用模型：GLM-5.3-Flash
+  功能：新闻排行榜选项卡 —— 按课堂测试图片 b.jpg 一比一还原：
+        "点击排行 / 评论排行"两个选项卡 + 十条斑马纹榜单（序号、标题、红色点击量）
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新闻排行榜 · 点击排行 / 评论排行</title>
+<style>
+  /* 页面底色：衬托组件的白底 */
+  body {
+    background: #f2f2f2;
+    font-family: SimSun, "宋体", "Microsoft YaHei", sans-serif;
+    padding: 32px 16px;
+  }
+
+  /* 返回首页链接（组件外的辅助链接，不影响还原区域） */
+  .yn_home-link {
+    display: block;
+    width: 380px;
+    margin: 0 auto 12px;
+    font-family: "Microsoft YaHei", sans-serif;
+    font-size: 13px;
+    color: #4d84bd;
+    text-decoration: none;
+  }
+  .yn_home-link:hover { text-decoration: underline; }
+
+  /* ============ 排行榜组件（一比一还原区域） ============ */
+  .yn_rank-widget {
+    width: 380px;
+    margin: 0 auto;
+    background: #fff;
+    border: 2px solid #64a0cd;      /* 组件外框：蓝色细边框 */
+  }
+
+  /* 选项卡栏：两个各占一半宽度的标签 */
+  .yn_rank-tabs { display: flex; }
+  .yn_rank-tab {
+    flex: 1;
+    height: 35px;
+    border: none;
+    background: #cfe4f4;            /* 未选中：浅蓝底 */
+    font-family: SimHei, "黑体", "Microsoft YaHei", sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #333;
+    cursor: pointer;
+    position: relative;
+  }
+  .yn_rank-tab:nth-child(1) { border-right: 2px solid #64a0cd; }
+  /* 选中：白底蓝字，底部用白条盖住组件分隔线，形成"接通"效果 */
+  .yn_rank-tab.yn_active { background: #fff; color: #1f5c97; }
+  .yn_rank-tab.yn_active::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -2px;
+    height: 2px;
+    background: #fff;
+  }
+  .yn_rank-tab:focus-visible { outline: 2px solid #1f5c97; outline-offset: -3px; }
+
+  /* 分隔线：选项卡与列表之间的蓝色横线 */
+  .yn_rank-divider { height: 2px; background: #64a0cd; }
+
+  /* 榜单面板：默认隐藏，yn_show 显示 */
+  .yn_rank-panel { display: none; margin: 0; padding: 0; list-style: none; }
+  .yn_rank-panel.yn_show { display: block; }
+
+  /* 榜单行：序号 + 标题 + 红色点击量，斑马纹隔行变色 */
+  .yn_rank-panel li {
+    display: flex;
+    align-items: center;
+    height: 31px;
+    padding: 0 8px 0 4px;
+    font-size: 14px;
+  }
+  .yn_rank-panel li:nth-child(even) { background: #e8f3fb; }
+  .yn_num { width: 24px; text-align: center; color: #8a8a8a; flex: none; }
+  .yn_rank-title {
+    flex: 1;
+    color: #000;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;               /* 超长标题按图片效果截断 */
+  }
+  .yn_rank-title:hover { color: #e60000; text-decoration: underline; }
+  .yn_count { flex: none; margin-left: 8px; color: #ff0000; font-weight: 700; }
+</style>
+</head>
+<body>
+
+  <a class="yn_home-link" href="index.html">← 返回首页 index.html</a>
+
+  <!-- 排行榜组件（对应图片 b.jpg 的还原区域） -->
+  <div class="yn_rank-widget" id="yn_rank_widget">
+    <div class="yn_rank-tabs" role="tablist">
+      <button class="yn_rank-tab yn_active" role="tab" data-yn-tab="yn_panel_click">点击排行</button>
+      <button class="yn_rank-tab" role="tab" data-yn-tab="yn_panel_comment">评论排行</button>
+    </div>
+    <div class="yn_rank-divider"></div>
+
+    <!-- 面板一：点击排行（与图片十条数据一致） -->
+    <ol class="yn_rank-panel yn_show" id="yn_panel_click" role="tabpanel">
+      <li><span class="yn_num">1</span><a class="yn_rank-title" href="#yn_panel_click">中国各城市房子到底要卖多少岁(详细数据)</a><span class="yn_count">187706</span></li>
+      <li><span class="yn_num">2</span><a class="yn_rank-title" href="#yn_panel_click">任志强：60多年来 我不知道国企给了我们</a><span class="yn_count">171180</span></li>
+      <li><span class="yn_num">3</span><a class="yn_rank-title" href="#yn_panel_click">三精制药董事长总被查因华闻滴案 省食</a><span class="yn_count">127631</span></li>
+      <li><span class="yn_num">4</span><a class="yn_rank-title" href="#yn_panel_click">内地17省铺开不动产统一登记职责整合工作</a><span class="yn_count">113685</span></li>
+      <li><span class="yn_num">5</span><a class="yn_rank-title" href="#yn_panel_click">山西煤矿老板抛售标价39套二手房 8年投资期</a><span class="yn_count">72770</span></li>
+      <li><span class="yn_num">6</span><a class="yn_rank-title" href="#yn_panel_click">北京城南楼市"论跑" 变相降价措施加码</a><span class="yn_count">82971</span></li>
+      <li><span class="yn_num">7</span><a class="yn_rank-title" href="#yn_panel_click">中国3D打印技术取得重大突破 近1200人连</a><span class="yn_count">27456</span></li>
+      <li><span class="yn_num">8</span><a class="yn_rank-title" href="#yn_panel_click">重磅利空突至全球暴跌 A股或黑周五无悬</a><span class="yn_count">25322</span></li>
+      <li><span class="yn_num">9</span><a class="yn_rank-title" href="#yn_panel_click">七匹狼早盘上演奇葩一幕：单笔4手买单刷</a><span class="yn_count">20912</span></li>
+      <li><span class="yn_num">10</span><a class="yn_rank-title" href="#yn_panel_click">长油小股东王导贬东大会 当场调侃董事长</a><span class="yn_count">11667</span></li>
+    </ol>
+
+    <!-- 面板二：评论排行（图片未展示该面板内容，此处为演示数据） -->
+    <ol class="yn_rank-panel" id="yn_panel_comment" role="tabpanel">
+      <li><span class="yn_num">1</span><a class="yn_rank-title" href="#yn_panel_comment">任志强：60多年来 我不知道国企给了我们</a><span class="yn_count">98214</span></li>
+      <li><span class="yn_num">2</span><a class="yn_rank-title" href="#yn_panel_comment">中国各城市房子到底要卖多少岁(详细数据)</a><span class="yn_count">87350</span></li>
+      <li><span class="yn_num">3</span><a class="yn_rank-title" href="#yn_panel_comment">北京城南楼市"论跑" 变相降价措施加码</a><span class="yn_count">54102</span></li>
+      <li><span class="yn_num">4</span><a class="yn_rank-title" href="#yn_panel_comment">重磅利空突至全球暴跌 A股或黑周五无悬</a><span class="yn_count">43771</span></li>
+      <li><span class="yn_num">5</span><a class="yn_rank-title" href="#yn_panel_comment">内地17省铺开不动产统一登记职责整合工作</a><span class="yn_count">32980</span></li>
+      <li><span class="yn_num">6</span><a class="yn_rank-title" href="#yn_panel_comment">三精制药董事长总被查因华闻滴案 省食</a><span class="yn_count">26544</span></li>
+      <li><span class="yn_num">7</span><a class="yn_rank-title" href="#yn_panel_comment">山西煤矿老板抛售标价39套二手房 8年投资期</a><span class="yn_count">18326</span></li>
+      <li><span class="yn_num">8</span><a class="yn_rank-title" href="#yn_panel_comment">中国3D打印技术取得重大突破 近1200人连</a><span class="yn_count">15093</span></li>
+      <li><span class="yn_num">9</span><a class="yn_rank-title" href="#yn_panel_comment">长油小股东王导贬东大会 当场调侃董事长</a><span class="yn_count">9847</span></li>
+      <li><span class="yn_num">10</span><a class="yn_rank-title" href="#yn_panel_comment">七匹狼早盘上演奇葩一幕：单笔4手买单刷</a><span class="yn_count">7311</span></li>
+    </ol>
+  </div>
+
+  <!-- 外部引用 js 文件夹中的排行榜选项卡脚本 -->
+  <script src="js/tab-rank-yn.js"></script>
+</body>
+</html>
