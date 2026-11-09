@@ -289,6 +289,46 @@
             font-size: 0.94rem;
         }
 
+        .log-row {
+            margin: 0 0 66px;
+        }
+
+        .log-row a {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 24px 28px;
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(219, 231, 243, 0.95);
+            border-left: 5px solid var(--yellow);
+            border-radius: 16px 16px 16px 6px;
+            box-shadow: 0 12px 28px rgba(52, 86, 126, 0.08);
+            transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+        }
+
+        .log-row a:hover {
+            border-color: #9fc3f5;
+            box-shadow: 0 18px 32px rgba(52, 86, 126, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .log-row h3 {
+            margin-top: 6px;
+            font-size: 1.18rem;
+        }
+
+        .log-row p {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 0.94rem;
+        }
+
+        .log-row .card-link {
+            flex-shrink: 0;
+            margin-top: 0;
+        }
+
         footer {
             padding: 22px 0 30px;
             border-top: 1px solid var(--line);
@@ -326,6 +366,12 @@
 
             .course-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .log-row a {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
             }
 
             .course-card {
@@ -370,7 +416,7 @@
                         <h2 id="directory-title">课堂目录</h2>
                         <p>已完成的页面与正在规划的学习模块</p>
                     </div>
-                    <p>共 17 个可访问页面</p>
+                    <p>共 19 个可访问页面</p>
                 </div>
 
                 <div class="course-grid">
@@ -529,6 +575,15 @@
 
                     <article class="course-card">
                         <div>
+                            <span class="card-index">18 / EXAM</span>
+                            <h3>Swiper 任务答卷展示</h3>
+                            <p>任务一·提示词工程师、任务二·creative 电影墙、任务三·魔都号+keyboard，三份提示词任务全文与实况效果。</p>
+                        </div>
+                        <a class="card-link" href="./swiper-tasks-yn.html">查看答卷</a>
+                    </article>
+
+                    <article class="course-card">
+                        <div>
                             <span class="card-index">06 / NEXT</span>
                             <h3>后续模块</h3>
                             <p>CSS 布局、页面交互与更多网页设计实践，持续增加中。</p>
@@ -536,6 +591,17 @@
                         <span class="card-link" aria-label="后续模块，敬请期待">敬请期待</span>
                     </article>
                 </div>
+            </section>
+
+            <section class="log-row" aria-labelledby="log-title">
+                <a href="./yn_prompt.md">
+                    <div>
+                        <span class="card-index">LOG</span>
+                        <h3 id="log-title">提示词记录 yn_prompt.md</h3>
+                        <p>课程约定全程留痕：每条提示词的日期、模型与原文，按时间顺序追加，可对照每个作品的生成过程。</p>
+                    </div>
+                    <span class="card-link">查看记录</span>
+                </a>
             </section>
 
             <section class="prompt-box" aria-labelledby="prompt-title">

@@ -50,6 +50,19 @@ keyboard: {
 
 **我自己的话：** `enabled` 是**总开关**——开着轮播才会监听 document 上的按键事件；`onlyInViewport` 是**范围开关**——轮播只有"滚进可视区域"才认方向键，滚出视口就自动"让出"按键。它俩组合解决的是"一页多轮播"的按键归属问题：总开关决定"谁监听"，范围开关决定"此刻谁响应"。
 
+### 第 4 步 · 补充要求：keyboard 必须与另一个课堂未讲能力共存
+
+**提示词要求：** 任务三"挑一个课堂上没讲过的 Swiper 能力"要**与 keyboard 键盘控制同时存在**。检查代码发现此前只有 keyboard 一个未讲模块，于是参考官方示例 `swiper/demo/190-grab-cursor.html` 补上第二个——**grabCursor 抓手光标**（只保留该示例的配置形式，光影展的展品图片等一律不改动；曾短暂加过 mousewheel 滚轮控制，后按要求删掉换成 grabCursor）。
+
+**最终配置（都写在 `yn_buildSw4` 基础配置里，与 keyboard 并存）：**
+
+```js
+keyboard: { enabled: true, onlyInViewport: true },  // 键盘 ←/→ 翻页
+grabCursor: true,                                   // 抓手光标，提示可拖拽
+```
+
+**我自己的话：** grabCursor 是官方示例 190-grab-cursor.html 里的一行式配置：悬停在轮播上光标变成"抓手"（grab），按住拖动时变成"抓取中"（grabbing），纯视觉反馈、不改任何翻页逻辑。keyboard 管键盘方向键输入，grabCursor 管鼠标拖拽的视觉提示，一动一静、互不抢占，天然可以共存。两者都写在基础配置里，所以任务四切换六种效果销毁重建后依然共存。
+
 ---
 
 ## 二、验证记录（打开 swiper-task.html）
@@ -60,6 +73,7 @@ keyboard: {
 | 2 | 滚动页面到演示四，按 ←/→ | 仅实验台轮播翻页，且支持循环；其它轮播不动 | ✅ keyboard 生效且无"四联动" |
 | 3 | 滚动到演示一按方向键 | 演示一不响应（未启用 keyboard），可正常拖动 | ✅ 按键归属隔离 |
 | 4 | 切到 creative 效果后按方向键 | 电影墙效果下键盘翻页正常（keyboard 写在基础配置，与 effect 无关） | ✅ |
+| 5 | 鼠标悬停演示四，再按住拖动 | 悬停时光标变"抓手"（grab），拖动时变"抓取中"（grabbing），方向键翻页不受影响 | ✅ grabCursor 与 keyboard 共存 |
 
 > 截图（魔都号 slide + 按键翻页前后对比）需本人操作后截取。
 
@@ -79,6 +93,9 @@ AI 第一版让 4 个轮播都加 `keyboard: true`，实测"四联动"——视�
 **Q4：现场把 delay 改成指定值并解释预期变化。**
 把 `yn_buildSw4` 里的 `autoplay.delay` 从 `3200` 改为 `5000`：预期变化是**每张停留时间从 3.2 秒变 5 秒**，翻页节奏明显变慢、圆点高亮切换间隔拉长；`speed: 800` 管的是翻页动画时长（不变），`keyboard` 与 effect 切换均不受影响。
 
+**Q5：grabCursor 和 keyboard 会互相冲突吗？为什么能共存？**
+不会。grabCursor 只是**光标样式反馈**：悬停时给容器切换 cursor: grab、拖动时切 cursor: grabbing，不参与任何事件分发与翻页逻辑；keyboard 监听的是 document 级方向键输入。一个管"看起来能拖"，一个管"键盘能翻"，一动一静互不抢占。两者都写在 `yn_buildSw4` 基础配置里，任务四 destroy + new 重建后依然并存。
+
 ---
 
 ## 四、图片说明（重要）
@@ -92,6 +109,6 @@ AI 第一版让 4 个轮播都加 `keyboard: true`，实测"四联动"——视�
 ### 附：本次改动清单
 
 1. 4 个轮播各新增第六件展品 slide（[L127](swiper-task.html#L127)、[L156](swiper-task.html#L156)、[L188](swiper-task.html#L188)、[L228](swiper-task.html#L228)）；
-2. `yn_buildSw4` 基础配置新增 `keyboard` 模块（[L326-L332](swiper-task.html#L326-L332)）；
+2. `yn_buildSw4` 基础配置新增 `keyboard` 模块（[L326-L332](swiper-task.html#L326-L332)）与 `grabCursor` 参数（[L333-L337](swiper-task.html#L333-L337)）——后者形式参考官方示例 swiper/demo/190-grab-cursor.html，两个课堂未讲能力按题目要求共存；
 3. 新增图片 [swiper-imgs/adora_1.svg](swiper-imgs/adora_1.svg)；
 4. 其余功能（六种效果、creative 电影墙、任务一~四配置）均未改动。
