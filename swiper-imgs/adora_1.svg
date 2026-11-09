@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice">
+  <!-- 爱达·魔都号 · AI 生成的 16:9 展示插画（金晚霞海上航行场景）-->
+  <defs>
+    <linearGradient id="ynSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a4a7b"/>
+      <stop offset="0.45" stop-color="#c97b63"/>
+      <stop offset="0.72" stop-color="#f2a65e"/>
+      <stop offset="1" stop-color="#f7c873"/>
+    </linearGradient>
+    <linearGradient id="ynSea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d98e4f"/>
+      <stop offset="0.12" stop-color="#3f6d8e"/>
+      <stop offset="1" stop-color="#12304d"/>
+    </linearGradient>
+    <linearGradient id="ynFunnel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8452c"/>
+      <stop offset="1" stop-color="#c23318"/>
+    </linearGradient>
+    <radialGradient id="ynSun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe9b0" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#ffe9b0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 天空与落日 -->
+  <rect width="1280" height="432" fill="url(#ynSky)"/>
+  <circle cx="980" cy="400" r="180" fill="url(#ynSun)"/>
+  <circle cx="980" cy="418" r="34" fill="#ffedbe"/>
+  <g fill="#ffffff" opacity="0.28">
+    <ellipse cx="240" cy="150" rx="150" ry="16"/>
+    <ellipse cx="420" cy="205" rx="105" ry="12"/>
+    <ellipse cx="1050" cy="235" rx="130" ry="13"/>
+  </g>
+
+  <!-- 海面 -->
+  <rect y="432" width="1280" height="288" fill="url(#ynSea)"/>
+  <g stroke="#ffd98f" opacity="0.5" stroke-width="3" stroke-linecap="round">
+    <line x1="880" y1="470" x2="1080" y2="470"/>
+    <line x1="920" y1="500" x2="1120" y2="500"/>
+    <line x1="850" y1="535" x2="1010" y2="535"/>
+  </g>
+  <g stroke="#9fc4dd" opacity="0.35" stroke-width="2" stroke-linecap="round">
+    <line x1="120" y1="480" x2="300" y2="480"/>
+    <line x1="180" y1="520" x2="330" y2="520"/>
+    <line x1="90" y1="600" x2="260" y2="600"/>
+  </g>
+
+  <!-- 船尾航迹 -->
+  <g fill="#ffffff" opacity="0.55">
+    <ellipse cx="205" cy="500" rx="150" ry="9"/>
+    <ellipse cx="130" cy="530" rx="185" ry="10"/>
+    <ellipse cx="70" cy="565" rx="215" ry="11"/>
+  </g>
+
+  <!-- 船体 -->
+  <path d="M330 424 L975 424 L1013 466 Q1016 486 994 488 L352 488 Q322 486 318 468 Z" fill="#f5f7fa"/>
+  <path d="M318 468 Q322 486 352 488 L994 488 Q1014 486 1012 472 L1010 466 Q1000 480 975 480 L352 480 Z" fill="#20304a"/>
+  <path d="M330 424 L975 424 L985 436 L340 436 Z" fill="#d9deea"/>
+  <!-- 船名带 -->
+  <g fill="#20304a" opacity="0.85">
+    <rect x="700" y="446" width="150" height="10" rx="4"/>
+    <rect x="868" y="446" width="52" height="10" rx="4"/>
+  </g>
+  <!-- 艏浪 -->
+  <path d="M1013 466 Q1060 462 1105 470 Q1070 486 1016 488 Z" fill="#ffffff" opacity="0.8"/>
+
+  <!-- 主甲板上层建筑 -->
+  <rect x="392" y="352" width="560" height="72" rx="10" fill="#f5f7fa"/>
+  <g fill="#2f6f9e">
+    <rect x="410" y="366" width="520" height="14" rx="4"/>
+    <rect x="410" y="394" width="520" height="14" rx="4"/>
+  </g>
+  <g fill="#bfe3f7">
+    <rect x="422" y="369" width="90" height="8" rx="3"/><rect x="528" y="369" width="90" height="8" rx="3"/><rect x="634" y="369" width="90" height="8" rx="3"/><rect x="740" y="369" width="90" height="8" rx="3"/><rect x="846" y="369" width="66" height="8" rx="3"/>
+    <rect x="422" y="397" width="90" height="8" rx="3"/><rect x="528" y="397" width="90" height="8" rx="3"/><rect x="634" y="397" width="90" height="8" rx="3"/><rect x="740" y="397" width="90" height="8" rx="3"/><rect x="846" y="397" width="66" height="8" rx="3"/>
+  </g>
+
+  <!-- 上层甲板与驾驶桥楼 -->
+  <rect x="452" y="312" width="440" height="40" rx="8" fill="#eef1f6"/>
+  <g fill="#2f6f9e">
+    <rect x="470" y="322" width="400" height="11" rx="4"/>
+  </g>
+  <rect x="560" y="272" width="150" height="40" rx="8" fill="#f5f7fa"/>
+  <rect x="572" y="282" width="126" height="14" rx="4" fill="#17324a"/>
+
+  <!-- 烟囱（红橙色标志性涂装）-->
+  <path d="M735 232 L800 232 L810 312 L725 312 Z" fill="url(#ynFunnel)"/>
+  <rect x="731" y="222" width="73" height="14" rx="6" fill="#20304a"/>
+  <!-- 桅杆与国旗 -->
+  <line x1="635" y1="272" x2="635" y2="204" stroke="#33415c" stroke-width="6"/>
+  <path d="M638 206 L694 214 L638 226 Z" fill="#de2910"/>
+  <!-- 雷达球 -->
+  <circle cx="505" cy="300" r="16" fill="#d9deea"/>
+  <circle cx="505" cy="300" r="7" fill="#8fa5bd"/>
+
+  <!-- 落日映在水面的光带 -->
+  <rect x="900" y="440" width="160" height="230" fill="#ffca6e" opacity="0.18"/>
+</svg>

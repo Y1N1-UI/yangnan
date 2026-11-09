@@ -125,3 +125,39 @@
 **提示词内容：**
 
 > 把这个一比一还原的内容提交到github,并且给我提交后的网址
+
+## 2026-11-05 | 模型: GLM-5.3-Flash
+
+**提示词内容：**
+
+> swiper-task.html#L1-297 完成任务四，把代码填充上，以达到 https://spontaneous-valkyrie-4e4229.netlify.app/swiper-lesson 这个网页里面5.切换效果，点击按钮可以切换
+
+## 2026-11-05 | 模型: GLM-5.3-Flash
+
+**提示词内容：**
+
+> 在index.html里面新增一个入口把swiper-task.html这个页面加入进去
+
+## 2026-11-05 | 模型: GLM-5.3-Flash
+
+**提示词内容：**
+
+> 完成 https://spontaneous-valkyrie-4e4229.netlify.app/swiper-lesson 这个网页"6.课堂任务 + 思政升华"中的任务一（提示词工程师：两轮迭代生成 #wySw4 配置并验证）
+
+## 2026-11-05 | 模型: GLM-5.3-Flash
+
+**提示词内容：**
+
+> 完成同一个页面的任务二（creative 仿写）：参考官方示例 swiper/demo/257-effect-creative.html 读懂 creativeEffect 的 transform 写法，为演示四新增第 7 个按钮「creative 电影墙」，实现上一张缩小左移带角度、下一张放大右移进场，并向 AI 追问 prev/next 的 transform 各控制什么
+
+## 2026-11-05 | 模型: GLM-5.3-Flash
+
+**提示词内容：**
+
+> 完成同一个页面的任务三（综合创作）：① 为光影展添加第六件展品"爱达·魔都号"（首艘国产大型邮轮，2024 年 1 月首航），图片用 AI 生成（横版 16:9），slide 结构完整；② 课堂未讲的 Swiper 能力任选其一加上（选定 keyboard 键盘控制），提交物含与 AI 的关键对话记录与答辩四连问预演
+
+## 2026-11-09 | 模型: GLM-5.3-Flash
+
+**提示词内容：**
+
+> 提交到github
