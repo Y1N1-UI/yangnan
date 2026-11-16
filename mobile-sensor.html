@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<!--
+  作者：杨楠
+  建立时间：2026-11-16
+  使用模型：DeepSeek-V4.1-Flash
+  功能：移动端传感器练习 —— 二选一两种玩法都实现：
+        A 摇一摇抽今日菜谱（devicemotion + accelerationIncludingGravity，阈值 18、1.5 秒冷却）；
+        B 倾斜视差（deviceorientation 的 beta/gamma 驱动三层元素错位移动）；
+        含 iOS 权限申请、当前设备不支持提示与「点我抽一次」降级方案（课程任务四）
+-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="杨楠的移动端传感器练习：摇一摇抽今日菜谱 + 倾斜视差">
+    <title>杨楠｜摇一摇 · 倾斜视差</title>
+    <style>
+        :root {
+            --yn_ink: #1d2330;
+            --yn_muted: #77808f;
+            --yn_paper: #fbf7f0;
+            --yn_card: #ffffff;
+            --yn_line: #e9e3d8;
+            --yn_accent: #c2410c;
+            --yn_soft: #fdeee1;
+            --yn_gold: #f2b544;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            max-width: 520px;
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: 18px 16px 34px;
+            color: var(--yn_ink);
+            background:
+                radial-gradient(circle at 84% 2%, rgba(242, 181, 68, 0.26), transparent 16rem),
+                radial-gradient(circle at 4% 30%, rgba(120, 159, 214, 0.16), transparent 14rem),
+                var(--yn_paper);
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .yn_topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+            font-size: 0.85rem;
+        }
+
+        .yn_back {
+            color: var(--yn_muted);
+            text-decoration: none;
+        }
+
+        .yn_page-title {
+            color: var(--yn_accent);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+        }
+
+        h1 {
+            font-size: 1.55rem;
+            letter-spacing: -0.02em;
+        }
+
+        .yn_sub {
+            margin-top: 8px;
+            color: var(--yn_muted);
+            font-size: 0.86rem;
+            line-height: 1.75;
+        }
+
+        /* 两个玩法共用一个分段开关，切换时只显示对应的面板 */
+        .yn_tabs {
+            display: flex;
+            gap: 4px;
+            margin: 20px 0 14px;
+            padding: 4px;
+            background: #efe9dd;
+            border-radius: 999px;
+        }
+
+        .yn_tab {
+            flex: 1;
+            padding: 10px 8px;
+            color: #6d6555;
+            font: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: transparent;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .yn_tab--on {
+            color: var(--yn_accent);
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(80, 62, 30, 0.14);
+        }
+
+        .yn_btn--perm {
+            display: block;
+            width: 100%;
+            margin-bottom: 14px;
+            padding: 12px;
+            color: #fff;
+            font: inherit;
+            font-size: 0.88rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #d97706, var(--yn_accent));
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 10px 20px rgba(194, 65, 12, 0.22);
+            cursor: pointer;
+        }
+
+        .yn_btn--perm:active {
+            transform: translateY(1px);
+        }
+
+        /* ---------- A：摇一摇 ---------- */
+        .yn_stage {
+            text-align: center;
+        }
+
+        .yn_phone {
+            font-size: 3.2rem;
+            line-height: 1;
+            animation: yn_swing 2.4s ease-in-out infinite;
+        }
+
+        @keyframes yn_swing {
+            0%, 100% { transform: rotate(-9deg); }
+            50% { transform: rotate(9deg); }
+        }
+
+        .yn_hint {
+            margin-top: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .yn_result {
+            position: relative;
+            display: flex;
+            min-height: 156px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 20px;
+            padding: 26px 22px 24px;
+            overflow: hidden;
+            text-align: center;
+            background: var(--yn_card);
+            border: 1px solid var(--yn_line);
+            border-radius: 24px 24px 24px 10px;
+            box-shadow: 0 18px 34px rgba(60, 74, 99, 0.1);
+        }
+
+        .yn_result::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto;
+            height: 5px;
+            background: linear-gradient(90deg, var(--yn_gold), var(--yn_accent));
+        }
+
+        .yn_result--pop {
+            animation: yn_pop 460ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes yn_pop {
+            0% { transform: scale(0.84); opacity: 0.2; }
+            60% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .yn_result-tag {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            padding: 3px 10px;
+            color: var(--yn_accent);
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            background: var(--yn_soft);
+            border-radius: 999px;
+        }
+
+        .yn_dish-emoji {
+            font-size: 2.5rem;
+            line-height: 1.1;
+        }
+
+        .yn_dish {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+
+        .yn_dish-desc {
+            max-width: 26ch;
+            color: var(--yn_muted);
+            font-size: 0.84rem;
+            line-height: 1.7;
+        }
+
+        .yn_placeholder {
+            color: var(--yn_muted);
+            font-size: 0.9rem;
+        }
+
+        .yn_acc {
+            margin-top: 12px;
+            color: #9a8f7c;
+            font-size: 0.72rem;
+            letter-spacing: 0.03em;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .yn_acc--hot {
+            color: var(--yn_accent);
+            font-weight: 700;
+        }
+
+        .yn_actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 18px;
+        }
+
+        .yn_btn {
+            padding: 12px 26px;
+            color: #fff;
+            font: inherit;
+            font-weight: 700;
+            background: var(--yn_accent);
+            border: none;
+            border-radius: 999px;
+            box-shadow: 0 8px 18px rgba(194, 65, 12, 0.25);
+            cursor: pointer;
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .yn_btn:active {
+            transform: translateY(2px) scale(0.98);
+            box-shadow: 0 4px 10px rgba(194, 65, 12, 0.22);
+        }
+
+        /* ---------- B：倾斜视差 ---------- */
+        .yn_scene {
+            position: relative;
+            height: 272px;
+            margin-top: 4px;
+            overflow: hidden;
+            border-radius: 24px;
+            background:
+                radial-gradient(circle at 50% 118%, rgba(242, 181, 68, 0.3), transparent 62%),
+                linear-gradient(160deg, #1b2230 0%, #2c3448 100%);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 18px 34px rgba(30, 38, 55, 0.28);
+            touch-action: none;
+        }
+
+        /* 网格线只做背景增强，且不拦鼠标/手指 */
+        .yn_scene::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 44px 44px;
+            pointer-events: none;
+        }
+
+        .yn_layer {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: transform;
+        }
+
+        .yn_layer--front {
+            flex-direction: column;
+        }
+
+        .yn_blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(16px);
+        }
+
+        .yn_blob--a {
+            top: 6%;
+            left: 4%;
+            width: 160px;
+            height: 160px;
+            background: rgba(242, 181, 68, 0.5);
+        }
+
+        .yn_blob--b {
+            right: 2%;
+            bottom: 8%;
+            width: 130px;
+            height: 130px;
+            background: rgba(96, 165, 250, 0.42);
+        }
+
+        .yn_blob--c {
+            top: 12%;
+            right: 26%;
+            width: 90px;
+            height: 90px;
+            background: rgba(244, 114, 182, 0.32);
+        }
+
+        .yn_food {
+            position: absolute;
+            font-size: 2.1rem;
+            filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.35));
+        }
+
+        .yn_food--a {
+            top: 22%;
+            left: 13%;
+        }
+
+        .yn_food--b {
+            top: 30%;
+            right: 15%;
+            font-size: 2.4rem;
+        }
+
+        .yn_food--c {
+            bottom: 16%;
+            left: 32%;
+        }
+
+        .yn_scene-title {
+            color: #fff;
+            font-size: 1.32rem;
+            font-weight: 800;
+            letter-spacing: 0.2em;
+            text-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+        }
+
+        .yn_scene-note {
+            margin-top: 6px;
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-align: center;
+        }
+
+        .yn_depth-tag {
+            position: absolute;
+            padding: 2px 8px;
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.62rem;
+            letter-spacing: 0.08em;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+        }
+
+        .yn_depth-tag--back {
+            top: 10px;
+            left: 12px;
+        }
+
+        .yn_depth-tag--mid {
+            top: 10px;
+            right: 12px;
+        }
+
+        .yn_depth-tag--front {
+            right: 12px;
+            bottom: 10px;
+        }
+
+        .yn_readout {
+            position: absolute;
+            bottom: 10px;
+            left: 12px;
+            padding: 5px 10px;
+            color: rgba(255, 255, 255, 0.86);
+            font-size: 0.68rem;
+            font-variant-numeric: tabular-nums;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            backdrop-filter: blur(6px);
+        }
+
+        .yn_scene-tip {
+            margin-top: 12px;
+            color: var(--yn_muted);
+            font-size: 0.78rem;
+            line-height: 1.7;
+            text-align: center;
+        }
+
+        /* ---------- 提示与说明 ---------- */
+        .yn_notice {
+            margin-top: 16px;
+            padding: 12px 14px;
+            color: #8a5a05;
+            font-size: 0.8rem;
+            line-height: 1.75;
+            background: #fff7e4;
+            border-left: 4px solid var(--yn_gold);
+            border-radius: 4px 12px 12px 4px;
+        }
+
+        .yn_guide {
+            margin-top: 22px;
+            padding: 18px;
+            background: var(--yn_card);
+            border: 1px solid var(--yn_line);
+            border-radius: 18px;
+        }
+
+        .yn_guide h2 {
+            color: var(--yn_accent);
+            font-size: 0.84rem;
+            letter-spacing: 0.06em;
+        }
+
+        .yn_guide h2:not(:first-of-type) {
+            margin-top: 20px;
+        }
+
+        .yn_guide ul {
+            margin: 10px 0 0 18px;
+            color: var(--yn_muted);
+            font-size: 0.8rem;
+            line-height: 1.9;
+        }
+
+        .yn_guide b {
+            color: var(--yn_ink);
+        }
+
+        .yn_guide p {
+            margin-top: 8px;
+            color: var(--yn_muted);
+            font-size: 0.8rem;
+            line-height: 1.9;
+        }
+
+        .yn_compare {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .yn_compare-card {
+            padding: 12px 14px;
+            background: #faf7f1;
+            border: 1px solid var(--yn_line);
+            border-radius: 12px;
+        }
+
+        .yn_compare-card--pick {
+            background: var(--yn_soft);
+            border-color: #f6d3b6;
+        }
+
+        .yn_compare-card h3 {
+            color: var(--yn_ink);
+            font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+            font-size: 0.76rem;
+        }
+
+        .yn_compare-card p {
+            margin-top: 6px;
+            color: var(--yn_muted);
+            font-size: 0.78rem;
+            line-height: 1.8;
+        }
+
+        .yn_foot {
+            margin-top: 22px;
+            color: #a59b88;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="yn_topbar">
+        <a class="yn_back" href="index.html">← 返回首页</a>
+        <span class="yn_page-title">MOBILE SENSOR</span>
+    </div>
+
+    <h1>摇一摇 · 倾斜视差</h1>
+    <p class="yn_sub">两种玩法都做了：摇动手机抽一张今日菜谱，或者左右倾斜手机看三层视差。电脑上没有传感器时，按钮和鼠标同样能玩。</p>
+
+    <div class="yn_tabs" role="tablist">
+        <button class="yn_tab yn_tab--on" id="ynTabShake" type="button" aria-pressed="true">🍜 摇一摇彩蛋</button>
+        <button class="yn_tab" id="ynTabTilt" type="button" aria-pressed="false">🌗 倾斜视差</button>
+    </div>
+
+    <button class="yn_btn yn_btn--perm" id="ynPermBtn" type="button" hidden>开启传感器权限</button>
+
+    <section class="yn_panel" id="ynPanelShake">
+        <div class="yn_stage">
+            <div class="yn_phone" aria-hidden="true">📱</div>
+            <p class="yn_hint">摇一摇手机，抽今日菜谱</p>
+
+            <div class="yn_result" id="ynResult">
+                <span class="yn_result-tag" id="ynTag" hidden>今日推荐</span>
+                <span class="yn_placeholder" id="ynPlaceholder">还没有抽取，摇一摇试试</span>
+                <span class="yn_dish-emoji" id="ynDishEmoji" hidden></span>
+                <span class="yn_dish" id="ynDish" hidden></span>
+                <span class="yn_dish-desc" id="ynDishDesc" hidden></span>
+            </div>
+
+            <p class="yn_acc" id="ynAcc">实时合成加速度：-- m/s²（阈值 18 · 冷却 1.5 秒）</p>
+
+            <div class="yn_actions">
+                <button class="yn_btn" id="ynDrawBtn" type="button">点我抽一次</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="yn_panel" id="ynPanelTilt" hidden>
+        <div class="yn_scene" id="ynScene">
+            <div class="yn_layer" id="ynLayerBack">
+                <span class="yn_depth-tag yn_depth-tag--back">远景 · 10px</span>
+                <span class="yn_blob yn_blob--a"></span>
+                <span class="yn_blob yn_blob--b"></span>
+                <span class="yn_blob yn_blob--c"></span>
+            </div>
+
+            <div class="yn_layer" id="ynLayerMid">
+                <span class="yn_depth-tag yn_depth-tag--mid">中景 · 20px</span>
+                <span class="yn_food yn_food--a">🍜</span>
+                <span class="yn_food yn_food--b">🥘</span>
+                <span class="yn_food yn_food--c">🍤</span>
+            </div>
+
+            <div class="yn_layer yn_layer--front" id="ynLayerFront">
+                <span class="yn_depth-tag yn_depth-tag--front">近景 · 32px</span>
+                <span class="yn_scene-title">视差</span>
+                <span class="yn_scene-note">左右倾斜手机，三层错位移动</span>
+            </div>
+
+            <div class="yn_readout" id="ynReadout">等待倾斜数据…</div>
+        </div>
+        <p class="yn_scene-tip">没有传感器也能看：在场景上左右拖动鼠标 / 手指，三层会按不同速度跟着走。</p>
+    </section>
+
+    <p class="yn_notice" id="ynNotice" hidden></p>
+
+    <section class="yn_guide">
+        <h2>验收要点</h2>
+        <ul>
+            <li>① <b>一次摇动只触发一次</b>：命中阈值后进入 1.5 秒冷却，冷却期内继续摇不会重复抽。</li>
+            <li>② <b>没有加速度传感器时</b>：3 秒内收不到 devicemotion 就提示"当前设备不支持"，页面照常可用，不报错也不白屏。</li>
+            <li>③ <b>iOS 权限</b>：靠「开启传感器权限」按钮触发 requestPermission，授权成功才绑定监听。</li>
+            <li>④ <b>两种加速度的区别</b>见下面两张卡。</li>
+        </ul>
+
+        <div class="yn_compare">
+            <div class="yn_compare-card yn_compare-card--pick">
+                <h3>accelerationIncludingGravity</h3>
+                <p>把重力一起算进去：静止平放约 (0, 0, 9.8)，模长永远不小于 9.8；拿在手上 10–12，用力摇超过 20。<b>本页用它判定摇动，阈值取 18。</b></p>
+            </div>
+            <div class="yn_compare-card">
+                <h3>acceleration</h3>
+                <p>浏览器已经扣掉重力：静止时接近 0，只有真实运动才有读数；部分设备或浏览器会返回 null，用它就得另设一套阈值。</p>
+            </div>
+        </div>
+
+        <h2>为什么必须做降级</h2>
+        <p>桌面浏览器大多没有加速度传感器，部分安卓浏览器不上报 devicemotion，iOS 又要求用户手势触发授权；只留"摇一摇"一条路，这三类用户会看到完全无响应的页面。所以保留「点我抽一次」和鼠标视差，任何设备都能完成交互。</p>
+    </section>
+
+    <p class="yn_foot">杨楠 · 2026-11-16 · 高级网页设计 · 移动端传感器练习</p>
+
+    <script>
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 变量名：yn_menu
+         * 简介：今日菜谱池，随机抽取一道显示，每条含表情、菜名与一句简介
+         */
+        const yn_menu = [
+            { emoji: '🍜', name: '番茄牛腩面', desc: '牛腩炖到软烂，汤头酸甜，面条吸饱汤汁。' },
+            { emoji: '🍛', name: '青椒肉丝盖饭', desc: '十分钟快手家常菜，咸香下饭，配一碗紫菜蛋花汤。' },
+            { emoji: '🍲', name: '香菇滑鸡煲仔饭', desc: '砂锅底的锅巴是灵魂，淋豉油时吱吱作响。' },
+            { emoji: '🥘', name: '酸汤肥牛', desc: '微辣微酸，肥牛卷一烫就熟，配米饭能吃两碗。' },
+            { emoji: '🥚', name: '虾仁豆腐蒸蛋', desc: '嫩到抖动的蒸蛋，虾仁与豆腐同蒸，清爽不腻。' },
+            { emoji: '🫛', name: '干煸四季豆', desc: '豆角煸到起皱，配蒜末肉末，越嚼越香。' }
+        ];
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 变量名：yn_sensor
+         * 简介：传感器运行状态——摇动阈值 18、冷却 1500 毫秒、是否冷却中、
+         *       两个传感器是否已收到数据、是否已绑定监听、当前展示的玩法（shake / tilt）、
+         *       以及两种玩法各自的提示文案
+         */
+        const yn_sensor = {
+            threshold: 18,
+            cooldown: 1500,
+            cooling: false,
+            motionReady: false,
+            tiltReady: false,
+            motionBound: false,
+            tiltBound: false,
+            mode: 'shake',
+            notice: { shake: '', tilt: '' }
+        };
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 变量名：yn_parallax
+         * 简介：视差的归一化坐标（x 左右、y 前后，范围 -1～1）与 requestAnimationFrame 句柄，
+         *       句柄非 0 表示已经排队等下一帧，避免同一个传感器事件里重复渲染
+         */
+        const yn_parallax = { x: 0, y: 0, raf: 0 };
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_clamp
+         * 简介：把数值限制在 min 与 max 之间，用于约束倾斜角与指针坐标
+         */
+        function yn_clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_drawDish
+         * 简介：从菜谱池随机抽一道写入结果卡并重放弹出动画；
+         *       force 为 true 时（手动点按钮）忽略冷却，否则冷却期内直接返回，
+         *       保证一次摇动只触发一次
+         */
+        function yn_drawDish(force) {
+            if (yn_sensor.cooling && !force) {
+                return;
+            }
+            yn_sensor.cooling = true;
+
+            const dish = yn_menu[Math.floor(Math.random() * yn_menu.length)];
+            const result = document.getElementById('ynResult');
+
+            document.getElementById('ynPlaceholder').hidden = true;
+            document.getElementById('ynTag').hidden = false;
+
+            const emoji = document.getElementById('ynDishEmoji');
+            emoji.textContent = dish.emoji;
+            emoji.hidden = false;
+
+            const dishEl = document.getElementById('ynDish');
+            dishEl.textContent = dish.name;
+            dishEl.hidden = false;
+
+            const descEl = document.getElementById('ynDishDesc');
+            descEl.textContent = dish.desc;
+            descEl.hidden = false;
+
+            result.classList.remove('yn_result--pop');
+            void result.offsetWidth; // 强制重排，让弹出动画能被再次触发
+            result.classList.add('yn_result--pop');
+
+            window.setTimeout(function () {
+                yn_sensor.cooling = false;
+            }, yn_sensor.cooldown);
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_onDeviceMotion
+         * 简介：devicemotion 回调——取 accelerationIncludingGravity 三轴值，
+         *       用 Math.hypot 求合成加速度并把读数写到页面上；超过阈值 18 判定为摇动并抽菜。
+         *       静止时约 9.8，正常手持 10～12，用力摇会超过 20
+         */
+        function yn_onDeviceMotion(event) {
+            const acc = event.accelerationIncludingGravity;
+            if (!acc || acc.x === null || acc.y === null || acc.z === null) {
+                return;
+            }
+
+            yn_sensor.motionReady = true;
+            const magnitude = Math.hypot(acc.x, acc.y, acc.z);
+
+            const readout = document.getElementById('ynAcc');
+            readout.textContent = '实时合成加速度：' + magnitude.toFixed(1) + ' m/s²（阈值 18 · 冷却 1.5 秒）';
+            readout.classList.toggle('yn_acc--hot', magnitude > yn_sensor.threshold);
+
+            if (magnitude > yn_sensor.threshold) {
+                yn_drawDish(false);
+            }
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_onDeviceOrientation
+         * 简介：deviceorientation 回调——gamma（左右倾）与 beta（前后倾）先各自收进 ±35°，
+         *       再除以 35 归一化成 -1～1 写入 yn_parallax；beta 减去 45° 是因为竖屏手持时
+         *       beta 本身就接近 45°，减掉之后才是"相对正持姿势"的偏移
+         */
+        function yn_onDeviceOrientation(event) {
+            if (event.gamma === null && event.beta === null) {
+                return;
+            }
+
+            yn_sensor.tiltReady = true;
+
+            const gamma = yn_clamp(event.gamma || 0, -35, 35);
+            const beta = yn_clamp((event.beta || 0) - 45, -35, 35);
+
+            yn_parallax.x = gamma / 35;
+            yn_parallax.y = beta / 35;
+
+            yn_renderReadout('倾斜', gamma, beta);
+            yn_scheduleParallax();
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_renderReadout
+         * 简介：把当前左右/前后角度写成场景左下角的小读数，source 用来区分数据来自传感器还是指针模拟
+         */
+        function yn_renderReadout(source, x, y) {
+            const leftRight = x < -2
+                ? '左倾 ' + Math.round(Math.abs(x)) + '°'
+                : (x > 2 ? '右倾 ' + Math.round(x) + '°' : '水平');
+            const frontBack = y < -2
+                ? '后仰 ' + Math.round(Math.abs(y)) + '°'
+                : (y > 2 ? '前倾 ' + Math.round(y) + '°' : '持平');
+
+            document.getElementById('ynReadout').textContent = source + ' · ' + leftRight + ' · ' + frontBack;
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_scheduleParallax
+         * 简介：用 requestAnimationFrame 把同一帧内的多次传感器回调合并成一次渲染，
+         *       避免高频率事件里反复改样式
+         */
+        function yn_scheduleParallax() {
+            if (yn_parallax.raf) {
+                return;
+            }
+            yn_parallax.raf = window.requestAnimationFrame(function () {
+                yn_parallax.raf = 0;
+                yn_applyParallax();
+            });
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_applyParallax
+         * 简介：把归一化坐标乘上每层的视差深度（远景 10px、中景 20px、近景 32px），
+         *       写成 translate3d 位移——位移越大看起来越靠近屏幕，这就是视差
+         */
+        function yn_applyParallax() {
+            const x = yn_parallax.x;
+            const y = yn_parallax.y;
+            const layers = [
+                { el: document.getElementById('ynLayerBack'), depth: 10 },
+                { el: document.getElementById('ynLayerMid'), depth: 20 },
+                { el: document.getElementById('ynLayerFront'), depth: 32 }
+            ];
+
+            layers.forEach(function (layer) {
+                layer.el.style.transform = 'translate3d(' + (x * layer.depth).toFixed(2) + 'px, ' +
+                    (y * layer.depth).toFixed(2) + 'px, 0)';
+            });
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_onScenePointer
+         * 简介：没有倾斜传感器时的替代方案——鼠标或手指在场景上移动，
+         *       按坐标换算成 -1～1 的归一化值驱动同样的视差；一旦收到真实倾斜数据就让位给传感器
+         */
+        function yn_onScenePointer(event) {
+            if (yn_sensor.tiltReady) {
+                return;
+            }
+
+            const rect = document.getElementById('ynScene').getBoundingClientRect();
+            const nx = yn_clamp(((event.clientX - rect.left) / rect.width - 0.5) * 2, -1, 1);
+            const ny = yn_clamp(((event.clientY - rect.top) / rect.height - 0.5) * 2, -1, 1);
+
+            yn_parallax.x = nx;
+            yn_parallax.y = ny;
+
+            yn_renderReadout('指针模拟', nx * 30, ny * 30);
+            yn_scheduleParallax();
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_setMode
+         * 简介：切换显示"摇一摇"或"倾斜视差"面板，同步开关按钮的选中态与 aria-pressed，
+         *       并刷新当前玩法对应的提示条
+         */
+        function yn_setMode(mode) {
+            yn_sensor.mode = mode;
+            const isShake = mode === 'shake';
+
+            document.getElementById('ynPanelShake').hidden = !isShake;
+            document.getElementById('ynPanelTilt').hidden = isShake;
+
+            const shakeTab = document.getElementById('ynTabShake');
+            const tiltTab = document.getElementById('ynTabTilt');
+            shakeTab.classList.toggle('yn_tab--on', isShake);
+            tiltTab.classList.toggle('yn_tab--on', !isShake);
+            shakeTab.setAttribute('aria-pressed', String(isShake));
+            tiltTab.setAttribute('aria-pressed', String(!isShake));
+
+            yn_renderNotice();
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_setNotice
+         * 简介：为某一种玩法记录提示文案（shake / tilt）并立即刷新提示条
+         */
+        function yn_setNotice(key, text) {
+            yn_sensor.notice[key] = text;
+            yn_renderNotice();
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_renderNotice
+         * 简介：只显示当前玩法自己的提示，避免"摇一摇不支持"的提示跑到视差面板下面
+         */
+        function yn_renderNotice() {
+            const text = yn_sensor.notice[yn_sensor.mode];
+            const notice = document.getElementById('ynNotice');
+            notice.textContent = text || '';
+            notice.hidden = !text;
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_requestPermissionFor
+         * 简介：iOS 13+ 的 DeviceMotionEvent / DeviceOrientationEvent 都需要在用户手势里调
+         *       requestPermission()；不支持该 API 的设备直接视为已授权，拒绝时返回 denied
+         */
+        function yn_requestPermissionFor(name) {
+            const ctor = window[name];
+            if (!ctor || typeof ctor.requestPermission !== 'function') {
+                return Promise.resolve('granted');
+            }
+            return ctor.requestPermission().catch(function () {
+                return 'denied';
+            });
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_requestPermissions
+         * 简介：点击授权按钮后依次申请动作与方向两个权限（Safari 一次只弹一个），
+         *       任一授权成功就绑定对应监听，两个都成功则隐藏按钮；
+         *       被拒绝或页面不是 HTTPS 时给出对应说明（iOS 只在安全上下文开放传感器）
+         */
+        function yn_requestPermissions() {
+            yn_requestPermissionFor('DeviceMotionEvent')
+                .then(function (motionState) {
+                    return yn_requestPermissionFor('DeviceOrientationEvent').then(function (tiltState) {
+                        return { motion: motionState, tilt: tiltState };
+                    });
+                })
+                .then(function (states) {
+                    if (states.motion === 'granted') {
+                        yn_startSensors('motion');
+                    }
+                    if (states.tilt === 'granted') {
+                        yn_startSensors('tilt');
+                    }
+
+                    if (states.motion === 'granted' && states.tilt === 'granted') {
+                        document.getElementById('ynPermBtn').hidden = true;
+                        yn_sensor.notice.shake = '';
+                        yn_sensor.notice.tilt = '';
+                        yn_renderNotice();
+                    }
+                    if (states.motion !== 'granted') {
+                        yn_setNotice('shake', yn_deniedText('摇一摇'));
+                    }
+                    if (states.tilt !== 'granted') {
+                        yn_setNotice('tilt', yn_deniedText('倾斜视差'));
+                    }
+                });
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_deniedText
+         * 简介：生成权限失败时的说明文案——http 页面先说清"iOS 只在 HTTPS 开放传感器"，
+         *       否则提示去设置里打开动作与方向；两种情况都给出降级路径
+         */
+        function yn_deniedText(name) {
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                return 'iOS 只在 HTTPS 页面开放传感器，当前是 http 地址，所以' + name +
+                    '拿不到数据。请改用 https 地址打开，或先点「点我抽一次」。';
+            }
+            return '动作权限没开启：请到 iPhone「设置 → Safari 浏览器 → 动作与方向」里允许后刷新本页，' +
+                name + '才会生效。';
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_startSensors
+         * 简介：绑定 devicemotion 与 deviceorientation 监听，只绑一次；
+         *       aspect 传 motion / tilt 时只绑其中一个，不传则两个都绑
+         */
+        function yn_startSensors(aspect) {
+            if ((!aspect || aspect === 'motion') && !yn_sensor.motionBound) {
+                window.addEventListener('devicemotion', yn_onDeviceMotion, { passive: true });
+                yn_sensor.motionBound = true;
+            }
+            if ((!aspect || aspect === 'tilt') && !yn_sensor.tiltBound) {
+                window.addEventListener('deviceorientation', yn_onDeviceOrientation, { passive: true });
+                yn_sensor.tiltBound = true;
+            }
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_detectSupport
+         * 简介：识别三种情况——iOS 需要先授权（显示授权按钮并提示点它）、
+         *       3 秒内收不到 devicemotion / deviceorientation（分别判定该玩法不支持）、
+         *       其余情况静默等待数据；始终保留按钮与指针视差作为降级入口
+         */
+        function yn_detectSupport() {
+            const needsPermission =
+                (typeof DeviceMotionEvent !== 'undefined' &&
+                    typeof DeviceMotionEvent.requestPermission === 'function') ||
+                (typeof DeviceOrientationEvent !== 'undefined' &&
+                    typeof DeviceOrientationEvent.requestPermission === 'function');
+
+            if (needsPermission) {
+                document.getElementById('ynPermBtn').hidden = false;
+                yn_setNotice('shake', 'iPhone / iPad 需要先点上面的「开启传感器权限」，并在弹窗里允许「动作与方向」访问，摇一摇才会生效。');
+                return;
+            }
+
+            window.setTimeout(function () {
+                if (!yn_sensor.motionReady) {
+                    yn_setNotice('shake', '当前设备不支持摇一摇（未检测到加速度传感器或事件被浏览器限制），请用手机打开本页，或直接点「点我抽一次」抽一道。');
+                }
+            }, 3000);
+
+            window.setTimeout(function () {
+                if (!yn_sensor.tiltReady) {
+                    yn_setNotice('tilt', '当前设备没有倾斜传感器：在场景上左右拖动鼠标或手指也能看到视差；手机上请用 https 地址打开本页。');
+                }
+            }, 3000);
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_bindEvents
+         * 简介：绑定两个玩法切换、抽菜按钮、授权按钮，以及场景上的 pointermove（鼠标/手指视差）
+         */
+        function yn_bindEvents() {
+            document.getElementById('ynTabShake').addEventListener('click', function () {
+                yn_setMode('shake');
+            });
+            document.getElementById('ynTabTilt').addEventListener('click', function () {
+                yn_setMode('tilt');
+            });
+            document.getElementById('ynDrawBtn').addEventListener('click', function () {
+                yn_drawDish(true);
+            });
+            document.getElementById('ynPermBtn').addEventListener('click', yn_requestPermissions);
+            document.getElementById('ynScene').addEventListener('pointermove', yn_onScenePointer, { passive: true });
+        }
+
+        yn_bindEvents();
+        yn_detectSupport();
+        yn_startSensors();
+        yn_applyParallax();
+    </script>
+</body>
+
+</html>

@@ -244,3 +244,59 @@
 **提示词内容：**
 
 > `d:\gjwy\531yangnan\swiper\demo\190-grab-cursor.html#L1-87`这个是课上没讲过的Swiper，把这个加到任务三中（只保留形式，图片什么的不改变），同时删掉滚轮控制
+
+## 2026-11-12 | 模型: GLM-5.3-Flash
+
+**提示词内容：**
+
+> 给我新建一个html文件，显示上图下文的结构，图片和文字通过本地启动服务器获取当前文件夹下面的db里面db.json的poems里面的图片，title和content。并给我生成server.js数据服务器文件，server.js放在db文件夹中。其中端口号为3004。
+
+## 2026-11-16 | 模型: DeepSeek-V4.1-Flash
+
+**提示词内容：**
+
+> 为什么加载出来的页面是这样的，图片怎么没有加载出来`https://spontaneous-valkyrie-4e4229.netlify.app/json-fetch-lesson`这个是我完成的任务，我做到“在 Trae 里的完整操作步骤”这个步骤，我还差什么没完成
+
+## 2026-11-16 | 模型: DeepSeek-V4.1-Flash
+
+**提示词内容：**
+
+> 完成`https://spontaneous-valkyrie-4e4229.netlify.app/json-fetch-lesson`这个页面中最后面的课堂任务：三档进阶的三个任务
+
+## 2026-11-16 | 模型: DeepSeek-V4.1-Flash
+
+**提示词内容：**
+
+> 完成`https://spontaneous-valkyrie-4e4229.netlify.app/mobile-events-lesson`这个页面中7.课堂实践任务：4 关递进中的任务一、二、三、四
+
+## 2026-11-16 | 模型: DeepSeek-V4.1-Flash
+
+**提示词内容：**
+
+> 我想要任务三和四从手机上进入的网站
+
+## 2026-11-16 | 模型: DeepSeek-V4.1-Flash
+
+**提示词内容：**
+
+> 任务四在手机上打开显示这样为什么，和我是苹果手机有关系吗
+
+## 2026-11-16 | 模型: DeepSeek-V4.1-Flash
+
+**提示词内容：**
+
+> 我想要把任务三的图片换成这个，并且完成加分：加一个“双指旋转”（用 Math.atan2 算角度差），或加缩放比例指示器。
+
+## 2026-11-16 | 模型: DeepSeek-V4.1-Flash
+
+**提示词内容：**
+
+> 我不想用图片一那种方式打开，保持原有的图片二的方式打开任务三和四
+
+## 2026-11-16 | 模型: DeepSeek-V4.1-Flash
+
+**提示词内容：**
+
+> 任务四这两个任务要求都实现，做的好看一点
+
+

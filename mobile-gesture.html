@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<!--
+  作者：杨楠
+  建立时间：2026-11-16
+  使用模型：DeepSeek-V4.1-Flash
+  功能：移动端手势美食卡片 —— 左右滑动切换 4 道菜，含 40px 阈值、300ms 冷却、
+        边界提示与 0.3s 过渡动画（课程任务二）
+-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="杨楠的移动端手势练习：左右滑动切换中华美食卡片">
+    <title>杨楠｜手势卡片 · 中华美食</title>
+    <style>
+        :root {
+            --yn_ink: #2b1a12;
+            --yn_muted: #7d6558;
+            --yn_paper: #fffaf3;
+            --yn_line: #eadbca;
+            --yn_red: #c0392b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 20px 18px 34px;
+            color: var(--yn_ink);
+            background:
+                radial-gradient(circle at 88% 6%, rgba(192, 57, 43, 0.12), transparent 16rem),
+                linear-gradient(160deg, #fffaf3 0%, #fdf1e3 100%);
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .yn_topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+            font-size: 0.85rem;
+        }
+
+        .yn_back {
+            color: var(--yn_muted);
+            text-decoration: none;
+        }
+
+        .yn_page-title {
+            color: var(--yn_red);
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+        }
+
+        h1 {
+            margin-bottom: 6px;
+            font-size: 1.55rem;
+            letter-spacing: -0.02em;
+        }
+
+        .yn_sub {
+            margin-bottom: 22px;
+            color: var(--yn_muted);
+            font-size: 0.88rem;
+        }
+
+        /* 卡片舞台：touch-action: pan-y 让纵向仍可滚动页面，横向手势交给我们自己处理 */
+        .yn_stage {
+            position: relative;
+            touch-action: pan-y;
+        }
+
+        .yn_card {
+            position: relative;
+            min-height: 360px;
+            padding: 26px 24px 30px;
+            overflow: hidden;
+            border-radius: 24px 24px 24px 8px;
+            box-shadow: 0 16px 34px rgba(91, 46, 18, 0.16);
+            transition: transform 180ms ease, opacity 180ms ease;
+        }
+
+        .yn_card::after {
+            position: absolute;
+            right: -40px;
+            bottom: -50px;
+            width: 170px;
+            height: 170px;
+            border: 22px solid rgba(255, 255, 255, 0.28);
+            border-radius: 50%;
+            content: "";
+        }
+
+        .yn_card--out-left {
+            opacity: 0;
+            transform: translateX(-38px) scale(0.97);
+        }
+
+        .yn_card--out-right {
+            opacity: 0;
+            transform: translateX(38px) scale(0.97);
+        }
+
+        .yn_card--in-left {
+            opacity: 0;
+            transform: translateX(38px) scale(0.97);
+            transition: none;
+        }
+
+        .yn_card--in-right {
+            opacity: 0;
+            transform: translateX(-38px) scale(0.97);
+            transition: none;
+        }
+
+        .yn_dish-emoji {
+            position: relative;
+            z-index: 1;
+            font-size: 4.4rem;
+            line-height: 1;
+        }
+
+        .yn_dish-name {
+            position: relative;
+            z-index: 1;
+            margin-top: 18px;
+            color: #fff;
+            font-size: 1.7rem;
+            letter-spacing: 0.04em;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+        }
+
+        .yn_dish-tag {
+            position: relative;
+            z-index: 1;
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 12px;
+            color: #fff;
+            font-size: 0.76rem;
+            letter-spacing: 0.08em;
+            background: rgba(255, 255, 255, 0.22);
+            border-radius: 999px;
+        }
+
+        .yn_dish-desc {
+            position: relative;
+            z-index: 1;
+            margin-top: 16px;
+            max-width: 30ch;
+            color: rgba(255, 255, 255, 0.94);
+            font-size: 0.92rem;
+            line-height: 1.75;
+        }
+
+        .yn_meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .yn_counter {
+            color: var(--yn_muted);
+            font-size: 0.88rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .yn_hint {
+            min-height: 1.4em;
+            color: var(--yn_red);
+            font-size: 0.84rem;
+            font-weight: 700;
+            opacity: 0;
+            transition: opacity 200ms ease;
+        }
+
+        .yn_hint--show {
+            opacity: 1;
+        }
+
+        .yn_guide {
+            margin-top: 26px;
+            padding: 16px 18px;
+            color: var(--yn_muted);
+            font-size: 0.84rem;
+            line-height: 1.85;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px dashed var(--yn_line);
+            border-radius: 14px;
+        }
+
+        .yn_guide b {
+            color: var(--yn_ink);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="yn_topbar">
+        <a class="yn_back" href="index.html">← 返回首页</a>
+        <span class="yn_page-title">MOBILE GESTURE</span>
+    </div>
+
+    <h1>中华美食 · 手势卡片</h1>
+    <p class="yn_sub">左右滑动切换上一道 / 下一道</p>
+
+    <div class="yn_stage" id="ynStage" aria-live="polite">
+        <article class="yn_card" id="ynCard">
+            <div class="yn_dish-emoji" id="ynEmoji">🍗</div>
+            <h2 class="yn_dish-name" id="ynName">宫保鸡丁</h2>
+            <span class="yn_dish-tag" id="ynTag">川菜</span>
+            <p class="yn_dish-desc" id="ynDesc"></p>
+        </article>
+    </div>
+
+    <div class="yn_meta">
+        <span class="yn_counter" id="ynCounter">第 1/4 张</span>
+        <span class="yn_hint" id="ynHint">已经是最后一张</span>
+    </div>
+
+    <div class="yn_guide">
+        <b>验收要点：</b>短距离误触不切换（阈值 40px，且横向位移要大于纵向）·
+        快速连滑不会跳两张（320ms 冷却）· 拖动时页面只允许纵向滚动（<b>touch-action: pan-y</b>）· 切换过渡 0.3s。
+    </div>
+
+    <script>
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 变量名：yn_dishes
+         * 简介：4 道美食数据，含菜名、菜系、简介、emoji 与卡片渐变背景
+         */
+        const yn_dishes = [
+            {
+                name: '宫保鸡丁',
+                tag: '川菜',
+                emoji: '🍗',
+                desc: '鸡丁滑嫩、花生酥脆，糊辣荔枝味在舌尖炸开——川菜里最"讨巧"的一道功夫菜。',
+                bg: 'linear-gradient(135deg, #e8590c 0%, #c0392b 100%)'
+            },
+            {
+                name: '麻婆豆腐',
+                tag: '川菜',
+                emoji: '🌶️',
+                desc: '麻、辣、烫、香、酥、嫩、鲜、活八字诀，一勺豆腐盖饭能吃出层次感。',
+                bg: 'linear-gradient(135deg, #d9480f 0%, #a61e1e 100%)'
+            },
+            {
+                name: '西湖醋鱼',
+                tag: '浙菜',
+                emoji: '🐟',
+                desc: '草鱼汆熟浇糖醋芡，酸甜清爽不腻口，讲究的是火候与那一勺"蟹味"的错觉。',
+                bg: 'linear-gradient(135deg, #2b8a3e 0%, #1b6b52 100%)'
+            },
+            {
+                name: '北京烤鸭',
+                tag: '京菜',
+                emoji: '🦆',
+                desc: '果木炭火烤出枣红外皮，片薄蘸糖，荷叶饼卷葱丝黄瓜——仪式感最足的一道。',
+                bg: 'linear-gradient(135deg, #b8860b 0%, #8c3b0b 100%)'
+            }
+        ];
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 变量名：yn_state
+         * 简介：手势识别所需的运行时状态——当前索引、横向阈值、冷却标记、起点坐标与位移
+         */
+        const yn_state = {
+            index: 0,
+            threshold: 40,
+            cooling: false,
+            startX: 0,
+            startY: 0,
+            deltaX: 0
+        };
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_renderCard
+         * 简介：把第 index 道菜的名称、菜系、简介、emoji 与渐变背景写入卡片，
+         *       同时更新底部"第 n/4 张"计数
+         */
+        function yn_renderCard() {
+            const dish = yn_dishes[yn_state.index];
+            const card = document.getElementById('ynCard');
+
+            document.getElementById('ynEmoji').textContent = dish.emoji;
+            document.getElementById('ynName').textContent = dish.name;
+            document.getElementById('ynTag').textContent = dish.tag;
+            document.getElementById('ynDesc').textContent = dish.desc;
+            document.getElementById('ynCounter').textContent = `第 ${yn_state.index + 1}/${yn_dishes.length} 张`;
+            card.style.background = dish.bg;
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_showHint
+         * 简介：在计数旁显示提示文字（如"已经是第一张"），1.4 秒后自动淡出
+         */
+        function yn_showHint(text) {
+            const hint = document.getElementById('ynHint');
+            hint.textContent = text;
+            hint.classList.add('yn_hint--show');
+
+            window.clearTimeout(yn_showHint.timer);
+            yn_showHint.timer = window.setTimeout(function () {
+                hint.classList.remove('yn_hint--show');
+            }, 1400);
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_switchTo
+         * 简介：按方向切换卡片（1 = 下一张，-1 = 上一张）。
+         *       先做 0.18s 的滑出动画，再换内容并滑入，整体 0.3s 过渡；
+         *       冷却 320ms 内忽略新的切换请求，避免快速连滑一次跳两张；
+         *       越界时不换内容，只给出"已经是第一张 / 最后一张"提示
+         */
+        function yn_switchTo(direction) {
+            if (yn_state.cooling) {
+                return;
+            }
+
+            const next = yn_state.index + direction;
+            if (next < 0) {
+                yn_showHint('已经是第一张');
+                return;
+            }
+            if (next >= yn_dishes.length) {
+                yn_showHint('已经是最后一张');
+                return;
+            }
+
+            const card = document.getElementById('ynCard');
+            yn_state.cooling = true;
+
+            // 1) 滑出
+            card.classList.add(direction > 0 ? 'yn_card--out-left' : 'yn_card--out-right');
+
+            window.setTimeout(function () {
+                // 2) 换内容，并瞬移到反方向作为入场起点（transition: none）
+                yn_state.index = next;
+                yn_renderCard();
+                card.classList.remove('yn_card--out-left', 'yn_card--out-right');
+                card.classList.add(direction > 0 ? 'yn_card--in-left' : 'yn_card--in-right');
+
+                // 3) 下一帧恢复过渡，滑回原位完成入场
+                window.requestAnimationFrame(function () {
+                    window.requestAnimationFrame(function () {
+                        card.classList.remove('yn_card--in-left', 'yn_card--in-right');
+                    });
+                });
+            }, 160);
+
+            window.setTimeout(function () {
+                yn_state.cooling = false;
+            }, 320);
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_onTouchStart
+         * 简介：记录单指按下的起点坐标，供 touchend 计算横向位移
+         */
+        function yn_onTouchStart(event) {
+            if (event.touches.length !== 1) {
+                return;
+            }
+            const touch = event.touches[0];
+            yn_state.startX = touch.clientX;
+            yn_state.startY = touch.clientY;
+            yn_state.deltaX = 0;
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_onTouchEnd
+         * 简介：用 changedTouches[0] 取抬起手指的位置（touchend 时 touches 已移除该手指），
+         *       横向位移超过 40px 且大于纵向位移时判定为左右滑，切换到上一张 / 下一张；
+         *       位移不足则视为误触，不切换
+         */
+        function yn_onTouchEnd(event) {
+            const touch = event.changedTouches[0];
+            if (!touch) {
+                return;
+            }
+
+            const deltaX = touch.clientX - yn_state.startX;
+            const deltaY = touch.clientY - yn_state.startY;
+            yn_state.deltaX = deltaX;
+
+            const isHorizontal = Math.abs(deltaX) > Math.abs(deltaY);
+            if (!isHorizontal || Math.abs(deltaX) < yn_state.threshold) {
+                return;
+            }
+
+            yn_switchTo(deltaX < 0 ? 1 : -1);
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_onTouchCancel
+         * 简介：手势被系统打断（来电、消息横幅、系统返回手势）时复位状态，
+         *       防止残留的起点与冷却标记让下一次滑动"卡住"
+         */
+        function yn_onTouchCancel() {
+            yn_state.deltaX = 0;
+            yn_state.cooling = false;
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_bindEvents
+         * 简介：在卡片舞台上绑定 touchstart / touchend / touchcancel 三个事件，
+         *       并支持桌面键盘左右方向键切换，方便电脑上验证
+         */
+        function yn_bindEvents() {
+            const stage = document.getElementById('ynStage');
+
+            stage.addEventListener('touchstart', yn_onTouchStart, { passive: true });
+            stage.addEventListener('touchend', yn_onTouchEnd, { passive: true });
+            stage.addEventListener('touchcancel', yn_onTouchCancel, { passive: true });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'ArrowLeft') {
+                    yn_switchTo(-1);
+                } else if (event.key === 'ArrowRight') {
+                    yn_switchTo(1);
+                }
+            });
+        }
+
+        yn_renderCard();
+        yn_bindEvents();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<!--
+  作者：杨楠
+  建立时间：2026-11-16
+  使用模型：DeepSeek-V4.1-Flash
+  功能：移动端图片查看器 —— 双指缩放（1×–4×，以两指中点为基准不跳）、
+        双指旋转（Math.atan2 算两指连线角度差）、双击在 1×/2× 间切换、
+        放大后单指拖动并限制在边界内（课程任务三 + 加分项）
+-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="杨楠的移动端图片查看器：双指缩放、双指旋转、双击放大、单指拖动">
+    <title>杨楠｜图片查看器 · 双指缩放与旋转</title>
+    <style>
+        :root {
+            --yn_ink: #1c2430;
+            --yn_muted: #7b8798;
+            --yn_paper: #f6f7f9;
+            --yn_line: #e2e6ec;
+            --yn_accent: #0f766e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 18px 16px 28px;
+            color: var(--yn_ink);
+            background: var(--yn_paper);
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .yn_topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+        }
+
+        .yn_back {
+            color: var(--yn_muted);
+            text-decoration: none;
+        }
+
+        .yn_page-title {
+            color: var(--yn_accent);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+        }
+
+        h1 {
+            margin-bottom: 6px;
+            font-size: 1.4rem;
+        }
+
+        .yn_sub {
+            margin-bottom: 14px;
+            color: var(--yn_muted);
+            font-size: 0.86rem;
+        }
+
+        .yn_notice {
+            margin-bottom: 14px;
+            padding: 11px 14px;
+            color: #0f5f58;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            background: #e6f4f1;
+            border-left: 4px solid var(--yn_accent);
+            border-radius: 4px 12px 12px 4px;
+        }
+
+        /* 查看器：overflow:hidden 裁掉放大后溢出的部分；
+           touch-action:none 把触摸手势完全交给 JS，避免页面跟着滚动或浏览器自己缩放 */
+        .yn_viewer {
+            position: relative;
+            height: 62vh;
+            overflow: hidden;
+            background: #10161d;
+            border-radius: 18px;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: grab;
+        }
+
+        .yn_photo {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transform-origin: center center;
+            /* 松手后的归位 / 双击缩放走 0.25s 过渡，拖动过程中会临时关闭 */
+            transition: transform 250ms ease;
+            will-change: transform;
+        }
+
+        .yn_photo--dragging {
+            transition: none;
+        }
+
+        .yn_bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 12px;
+            font-size: 0.82rem;
+        }
+
+        .yn_scale {
+            padding: 5px 12px;
+            color: #fff;
+            font-variant-numeric: tabular-nums;
+            background: var(--yn_accent);
+            border-radius: 999px;
+        }
+
+        .yn_help {
+            color: var(--yn_muted);
+            text-align: right;
+        }
+
+        .yn_guide {
+            margin-top: 18px;
+            padding: 15px 17px;
+            color: var(--yn_muted);
+            font-size: 0.82rem;
+            line-height: 1.9;
+            background: #fff;
+            border: 1px dashed var(--yn_line);
+            border-radius: 14px;
+        }
+
+        .yn_guide b {
+            color: var(--yn_ink);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="yn_topbar">
+        <a class="yn_back" href="index.html">← 返回首页</a>
+        <span class="yn_page-title">MOBILE ZOOM</span>
+    </div>
+
+    <h1>图片查看器 · 双指缩放与旋转</h1>
+    <p class="yn_sub">双指缩放请用手机打开，电脑可用触摸板双指手势或模拟触摸</p>
+
+    <p class="yn_notice">双指缩放请用手机打开（1×–4×）· 双指同时旋转图片（Math.atan2 算角度差）· 双击在 1×/2× 之间切换 · 放大后单指拖动查看细节</p>
+
+    <div class="yn_viewer" id="ynViewer">
+        <img class="yn_photo" id="ynPhoto" src="img/zoom-photo.jpg" alt="青瓦白墙间的白玉兰与游走的光影">
+    </div>
+
+    <div class="yn_bar">
+        <span class="yn_scale" id="ynScale">1.0×</span>
+        <span class="yn_help">缩放以两指中点为基准 · 旋转角实时跟随</span>
+    </div>
+
+    <div class="yn_guide">
+        <b>验收要点：</b>缩放基准固定在两指中点，图片不会"跳走"· 缩放范围被限制在 1×–4×，到边界不继续放大 ·
+        双指旋转用 <b>Math.atan2</b> 比较两指连线在起始与当前时刻的角度差，手指转多少图片就转多少 ·
+        1× 时不能拖出边界、不保留旋转 · 缩放与旋转状态保存在 JS 变量里，旋转屏幕不会丢失。
+    </div>
+
+    <script>
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 变量名：yn_view
+         * 简介：查看器的全部手势状态——当前缩放比 scale、位移 tx/ty、旋转角 rotation，
+         *       以及手势开始时的快照（起始距离、起始缩放、起始位移、两指中点、两指起始角度）
+         */
+        const yn_view = {
+            scale: 1,
+            tx: 0,
+            ty: 0,
+            rotation: 0,
+            minScale: 1,
+            maxScale: 4,
+            mode: '',
+            startDist: 0,
+            startScale: 1,
+            startTx: 0,
+            startTy: 0,
+            startCx: 0,
+            startCy: 0,
+            startAngle: 0,
+            startRotation: 0,
+            startX: 0,
+            startY: 0,
+            lastTapTime: 0
+        };
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_clamp
+         * 简介：把数值限制在 min 与 max 之间，用于约束缩放比和位移边界
+         */
+        function yn_clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_bounds
+         * 简介：计算当前缩放比下允许的最大位移。
+         *       图片以中心为原点缩放，放大 s 倍后每侧多出 (宽×(s-1)/2) 的可见范围，
+         *       位移超过这个值就会露出空白，所以作为拖动边界
+         */
+        function yn_bounds() {
+            const viewer = document.getElementById('ynViewer');
+            return {
+                x: (viewer.clientWidth * (yn_view.scale - 1)) / 2,
+                y: (viewer.clientHeight * (yn_view.scale - 1)) / 2
+            };
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_clampPosition
+         * 简介：把 tx/ty 收进当前缩放比的合法边界内；缩放到 1× 时强制归零（自动居中）
+         */
+        function yn_clampPosition() {
+            if (yn_view.scale <= 1.001) {
+                yn_view.scale = 1;
+                yn_view.tx = 0;
+                yn_view.ty = 0;
+                yn_view.rotation = 0;
+                return;
+            }
+            const bound = yn_bounds();
+            yn_view.tx = yn_clamp(yn_view.tx, -bound.x, bound.x);
+            yn_view.ty = yn_clamp(yn_view.ty, -bound.y, bound.y);
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_applyTransform
+         * 简介：把 scale / tx / ty / rotation 写成 transform 应用到图片，
+         *       并同步右上角的指示器（缩放倍数，旋转时追加角度）
+         */
+        function yn_applyTransform() {
+            const photo = document.getElementById('ynPhoto');
+            photo.style.transform = `translate(${yn_view.tx}px, ${yn_view.ty}px) scale(${yn_view.scale}) rotate(${yn_view.rotation}deg)`;
+
+            const angle = Math.round(yn_view.rotation);
+            const angleText = angle === 0 ? '' : ' · ' + angle + '°';
+            document.getElementById('ynScale').textContent = yn_view.scale.toFixed(1) + '×' + angleText;
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_toLocal
+         * 简介：把屏幕坐标换算成"相对查看器中心"的坐标，
+         *       因为 transform-origin 是 center，所有缩放基准都要用中心坐标系计算
+         */
+        function yn_toLocal(clientX, clientY) {
+            const rect = document.getElementById('ynViewer').getBoundingClientRect();
+            return {
+                x: clientX - (rect.left + rect.width / 2),
+                y: clientY - (rect.top + rect.height / 2)
+            };
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_touchDistance
+         * 简介：计算两指之间的直线距离，用来和起始距离做比例得到缩放倍数
+         */
+        function yn_touchDistance(touchA, touchB) {
+            const dx = touchA.clientX - touchB.clientX;
+            const dy = touchA.clientY - touchB.clientY;
+            return Math.hypot(dx, dy);
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_touchAngle
+         * 简介：用 Math.atan2(Δy, Δx) 求两指连线相对水平方向的角度（单位：度），
+         *       起始角度与当前角度相减就是这一轮手势转过的角度
+         */
+        function yn_touchAngle(touchA, touchB) {
+            return (Math.atan2(touchB.clientY - touchA.clientY, touchB.clientX - touchA.clientX) * 180) / Math.PI;
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_onTouchStart
+         * 简介：双指按下时记录起始距离、起始缩放与起始位移，并把两指中点换算为中心坐标作为缩放基准；
+         *       单指按下时只记录起点坐标（起点既可能是拖动，也可能是双击的第一下）
+         */
+        function yn_onTouchStart(event) {
+            const photo = document.getElementById('ynPhoto');
+
+            if (event.touches.length === 2) {
+                const [a, b] = event.touches;
+                const mid = {
+                    x: (a.clientX + b.clientX) / 2,
+                    y: (a.clientY + b.clientY) / 2
+                };
+                const local = yn_toLocal(mid.x, mid.y);
+
+                yn_view.mode = 'pinch';
+                yn_view.startDist = yn_touchDistance(a, b) || 1;
+                yn_view.startScale = yn_view.scale;
+                yn_view.startTx = yn_view.tx;
+                yn_view.startTy = yn_view.ty;
+                yn_view.startCx = local.x;
+                yn_view.startCy = local.y;
+                yn_view.startAngle = yn_touchAngle(a, b);
+                yn_view.startRotation = yn_view.rotation;
+
+                photo.classList.add('yn_photo--dragging');
+                return;
+            }
+
+            if (event.touches.length === 1) {
+                const touch = event.touches[0];
+                yn_view.mode = yn_view.scale > 1 ? 'drag' : 'tap';
+                yn_view.startX = touch.clientX;
+                yn_view.startY = touch.clientY;
+                yn_view.startTx = yn_view.tx;
+                yn_view.startTy = yn_view.ty;
+                photo.classList.add('yn_photo--dragging');
+            }
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_onTouchMove
+         * 简介：双指移动时按"当前距离 ÷ 起始距离"得到缩放倍数，并把缩放锚点固定在两指中点：
+         *       tx' = cx − (cx − tx) × k（k 为新旧缩放比之比），这样中点下的像素位置保持不变，
+         *       图片看上去就不会"跳走"；同时用 Math.atan2 比较两指连线角度的变化量，写入旋转角度；
+         *       单指移动时在放大状态下平移图片，并实时限制边界
+         */
+        function yn_onTouchMove(event) {
+            if (yn_view.mode === 'pinch' && event.touches.length === 2) {
+                event.preventDefault();
+
+                const [a, b] = event.touches;
+                const distance = yn_touchDistance(a, b) || 1;
+                const nextScale = yn_clamp(
+                    yn_view.startScale * (distance / yn_view.startDist),
+                    yn_view.minScale,
+                    yn_view.maxScale
+                );
+                const k = nextScale / yn_view.startScale;
+
+                // 以两指中点为中心缩放：中点处的图像内容保持不动
+                yn_view.tx = yn_view.startCx - (yn_view.startCx - yn_view.startTx) * k;
+                yn_view.ty = yn_view.startCy - (yn_view.startCy - yn_view.startTy) * k;
+                yn_view.scale = nextScale;
+
+                // 双指旋转：当前角度 − 起始角度 就是这一轮转过的角度，叠加到按下时的角度上
+                const currentAngle = yn_touchAngle(a, b);
+                let rotation = yn_view.startRotation + (currentAngle - yn_view.startAngle);
+                // 归一化到 −180°~180°，避免累计多圈后数值无限增大
+                rotation = (((rotation + 180) % 360) + 360) % 360 - 180;
+                yn_view.rotation = rotation;
+
+                yn_clampPosition();
+                yn_applyTransform();
+                return;
+            }
+
+            if (yn_view.mode === 'drag' && event.touches.length === 1) {
+                event.preventDefault();
+
+                const touch = event.touches[0];
+                yn_view.tx = yn_view.startTx + (touch.clientX - yn_view.startX);
+                yn_view.ty = yn_view.startTy + (touch.clientY - yn_view.startY);
+
+                yn_clampPosition();
+                yn_applyTransform();
+            }
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_onTouchEnd
+         * 简介：手指抬起时收尾——双指松开则恢复过渡并归位到合法边界（缩到 1× 自动居中）；
+         *       单指轻点用两次点击间隔（≤300ms）判定双击，在 1×/2× 之间切换并以点击处为锚点
+         */
+        function yn_onTouchEnd(event) {
+            const photo = document.getElementById('ynPhoto');
+
+            if (event.touches.length === 1) {
+                // 双指抬起一根，剩下一根继续拖：把当前状态更新为新起点
+                const touch = event.touches[0];
+                yn_view.mode = 'drag';
+                yn_view.startX = touch.clientX;
+                yn_view.startY = touch.clientY;
+                yn_view.startTx = yn_view.tx;
+                yn_view.startTy = yn_view.ty;
+                return;
+            }
+
+            if (event.touches.length > 1) {
+                return;
+            }
+
+            const touch = event.changedTouches[0];
+            const moved = touch
+                ? Math.hypot(touch.clientX - yn_view.startX, touch.clientY - yn_view.startY)
+                : 0;
+            const isTap = yn_view.mode !== 'pinch' && moved < 10;
+
+            photo.classList.remove('yn_photo--dragging');
+
+            if (isTap && touch) {
+                const now = Date.now();
+                if (now - yn_view.lastTapTime < 300) {
+                    yn_toggleDoubleTap(touch.clientX, touch.clientY);
+                    yn_view.lastTapTime = 0;
+                } else {
+                    yn_view.lastTapTime = now;
+                }
+            }
+
+            yn_view.mode = '';
+            yn_clampPosition();
+            yn_applyTransform();
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_toggleDoubleTap
+         * 简介：双击切换缩放——当前大于 1.5× 时回到 1× 居中并清零旋转，否则放大到 2×，
+         *       并以双击位置为锚点用同一套 k 公式换算位移，保证双击处内容不跑
+         */
+        function yn_toggleDoubleTap(clientX, clientY) {
+            const local = yn_toLocal(clientX, clientY);
+
+            if (yn_view.scale > 1.5) {
+                yn_view.scale = 1;
+                yn_view.tx = 0;
+                yn_view.ty = 0;
+                yn_view.rotation = 0;
+            } else {
+                const target = 2;
+                const k = target / yn_view.scale;
+                yn_view.tx = local.x - (local.x - yn_view.tx) * k;
+                yn_view.ty = local.y - (local.y - yn_view.ty) * k;
+                yn_view.scale = target;
+            }
+
+            yn_clampPosition();
+            yn_applyTransform();
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_onTouchCancel
+         * 简介：手势被系统打断（来电、消息横幅、系统返回）时复位手势模式并归位，
+         *       避免残留 pinch/drag 状态让下一次触摸错乱
+         */
+        function yn_onTouchCancel() {
+            yn_view.mode = '';
+            document.getElementById('ynPhoto').classList.remove('yn_photo--dragging');
+            yn_clampPosition();
+            yn_applyTransform();
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_bindEvents
+         * 简介：在查看器上绑定 three 个触摸事件（move 需要 preventDefault，故 passive:false），
+         *       并附带鼠标双击支持，方便电脑上验证双击缩放
+         */
+        function yn_bindEvents() {
+            const viewer = document.getElementById('ynViewer');
+
+            viewer.addEventListener('touchstart', yn_onTouchStart, { passive: true });
+            viewer.addEventListener('touchmove', yn_onTouchMove, { passive: false });
+            viewer.addEventListener('touchend', yn_onTouchEnd, { passive: true });
+            viewer.addEventListener('touchcancel', yn_onTouchCancel, { passive: true });
+
+            viewer.addEventListener('dblclick', function (event) {
+                yn_toggleDoubleTap(event.clientX, event.clientY);
+            });
+        }
+
+        yn_bindEvents();
+        yn_applyTransform();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<!--
+  作者：杨楠
+  建立时间：2026-11-12
+  使用模型：GLM-5.3-Flash
+  功能：诗词图片墙页面 —— 上图下文结构，通过本地数据服务器（db/server.js，端口 3004）
+        请求 /api/poems 接口获取 db.json 里的图片、title 和 content 并渲染成卡片
+-->
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="杨楠的诗词图片墙：上图下文结构，数据来自本地数据服务器">
+    <!-- 图片源 gitee 有防盗链：带 localhost 的 Referer 会被 403 拒绝，故本页不发送 Referer -->
+    <meta name="referrer" content="no-referrer">
+    <title>杨楠｜诗词图片墙（上图下文）</title>
+    <style>
+        :root {
+            --ink: #2b2118;
+            --muted: #7a6a58;
+            --paper: #fffdf7;
+            --line: #e8ddc9;
+            --amber: #b8860b;
+            --amber-dark: #8f6a08;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 90% 0%, rgba(184, 134, 11, 0.12), transparent 20rem),
+                linear-gradient(160deg, #fbf6ec 0%, #f5edd9 100%);
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            line-height: 1.7;
+        }
+
+        .yn_page {
+            width: min(1080px, calc(100% - 36px));
+            margin: 0 auto;
+        }
+
+        .yn_header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 34px 0 22px;
+        }
+
+        .yn_eyebrow {
+            color: var(--amber-dark);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+        }
+
+        .yn_header h1 {
+            margin-top: 8px;
+            font-size: clamp(1.7rem, 4vw, 2.4rem);
+            letter-spacing: 0.04em;
+        }
+
+        .yn_home-link {
+            flex-shrink: 0;
+            padding: 8px 16px;
+            color: var(--amber-dark);
+            font-weight: 700;
+            text-decoration: none;
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            transition: background 160ms ease, transform 160ms ease;
+        }
+
+        .yn_home-link:hover {
+            background: #fff;
+            transform: translateY(-2px);
+        }
+
+        .yn_grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+            padding-bottom: 56px;
+        }
+
+        .yn_card {
+            overflow: hidden;
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 14px 14px 10px 10px;
+            box-shadow: 0 10px 24px rgba(90, 66, 20, 0.1);
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .yn_card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 30px rgba(90, 66, 20, 0.16);
+        }
+
+        .yn_pic {
+            display: block;
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--line);
+            background: #efe6d2;
+        }
+
+        .yn_body {
+            padding: 14px 16px 18px;
+        }
+
+        .yn_title {
+            font-size: 1.08rem;
+            letter-spacing: 0.06em;
+        }
+
+        .yn_content {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .yn_toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .yn_search {
+            flex: 1 1 260px;
+            padding: 11px 18px;
+            color: var(--ink);
+            font: inherit;
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            outline: none;
+            transition: border-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        .yn_search:focus {
+            border-color: var(--amber);
+            box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.16);
+        }
+
+        .yn_sort-btn {
+            padding: 11px 20px;
+            color: var(--amber-dark);
+            font: inherit;
+            font-weight: 700;
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+        }
+
+        .yn_sort-btn:hover {
+            background: #fff;
+            transform: translateY(-2px);
+        }
+
+        .yn_sort-btn[aria-pressed="true"] {
+            color: #fff;
+            background: var(--amber);
+            border-color: var(--amber);
+        }
+
+        .yn_authors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .yn_author-chip {
+            padding: 6px 14px;
+            color: var(--amber-dark);
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+        }
+
+        .yn_author-chip b {
+            color: var(--ink);
+        }
+
+        .yn_empty {
+            padding: 36px 0 60px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .yn_tip {
+            margin: 30px 0 60px;
+            padding: 18px 22px;
+            color: #7a3b1e;
+            background: #fdf3e3;
+            border: 1px dashed #d9a05b;
+            border-radius: 12px;
+            font-size: 0.95rem;
+        }
+
+        .yn_tip code {
+            padding: 1px 6px;
+            background: #f3e3c3;
+            border-radius: 6px;
+            font-family: Consolas, monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="yn_page">
+        <header class="yn_header">
+            <div>
+                <p class="yn_eyebrow">POEM WALL</p>
+                <h1>诗词图片墙 · 上图下文</h1>
+            </div>
+            <a class="yn_home-link" href="./index.html">返回首页</a>
+        </header>
+
+        <main>
+            <section class="yn_toolbar" aria-label="检索与排序">
+                <input class="yn_search" id="ynSearch" type="search" placeholder="输入关键字，按标题或内容筛选诗词"
+                    aria-label="搜索诗词">
+                <button class="yn_sort-btn" id="ynSort" type="button" aria-pressed="false">按标题长度排序</button>
+            </section>
+            <section class="yn_authors" id="ynAuthors" aria-label="本页作者"></section>
+            <section class="yn_grid" id="ynGrid" aria-label="诗词卡片列表"></section>
+            <p class="yn_empty" id="ynEmpty" hidden>没有匹配的诗词，换个关键字试试。</p>
+            <p class="yn_tip" id="ynTip" hidden>
+                数据加载失败：请先在 <code>db</code> 文件夹下运行 <code>node server.js</code>
+                启动数据服务器（端口 3004），再打开
+                <code>http://localhost:3004/poems-wall-yn.html</code> 访问本页。
+            </p>
+        </main>
+    </div>
+
+    <script>
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 变量名：yn_state
+         * 简介：保存接口返回的原始数据与当前视图状态——poems（诗词数组）、authors（作者数组）、
+         *       keyword（搜索关键字）、sorted（是否按标题长度排序）。原始数据始终不改，
+         *       过滤和排序都基于副本，清空关键字即可恢复全部内容
+         */
+        const yn_state = {
+            poems: [],
+            authors: [],
+            keyword: '',
+            sorted: false
+        };
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_escape
+         * 简介：把文本中的 & < > " ' 转义，防止数据里的特殊字符破坏卡片 HTML 结构
+         */
+        function yn_escape(text) {
+            return String(text == null ? '' : text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_renderAuthors
+         * 简介：把 /api/authors 返回的作者数组渲染成顶部小标签，展示"姓名 · 朝代"
+         */
+        function yn_renderAuthors(authors) {
+            const box = document.getElementById('ynAuthors');
+            box.innerHTML = authors
+                .map(
+                    (item) =>
+                        `<span class="yn_author-chip"><b>${yn_escape(item.name)}</b> · ${yn_escape(item.dynasty)}</span>`
+                )
+                .join('');
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_renderCards
+         * 简介：把诗词数组按"上图下文"结构渲染成卡片；数组为空时显示空状态提示
+         */
+        function yn_renderCards(list) {
+            const grid = document.getElementById('ynGrid');
+            const empty = document.getElementById('ynEmpty');
+
+            empty.hidden = list.length > 0;
+            grid.innerHTML = list
+                .map(
+                    (item) => `
+                        <article class="yn_card">
+                            <img class="yn_pic" src="${yn_escape(item.pic)}" alt="《${yn_escape(item.title)}》配图" loading="lazy">
+                            <div class="yn_body">
+                                <h2 class="yn_title">${yn_escape(item.title)}</h2>
+                                <p class="yn_content">${yn_escape(item.content)}</p>
+                            </div>
+                        </article>`
+                )
+                .join('');
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_applyView
+         * 简介：先按关键字过滤（标题或内容包含即命中，忽略大小写），
+         *       再按需按标题长度升序排序，最后交给 yn_renderCards 重绘
+         */
+        function yn_applyView() {
+            const keyword = yn_state.keyword.trim().toLowerCase();
+            let list = yn_state.poems.filter((item) => {
+                if (!keyword) {
+                    return true;
+                }
+                const title = String(item.title || '').toLowerCase();
+                const content = String(item.content || '').toLowerCase();
+                return title.indexOf(keyword) > -1 || content.indexOf(keyword) > -1;
+            });
+
+            if (yn_state.sorted) {
+                list = list.slice().sort((a, b) => a.title.length - b.title.length);
+            }
+
+            yn_renderCards(list);
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_loadData
+         * 简介：用 Promise.all 同时请求 /api/poems 和 /api/authors 两份数据，
+         *       全部成功后分别渲染卡片与作者标签；任一请求失败则显示启动服务器提示条
+         */
+        function yn_loadData() {
+            const tip = document.getElementById('ynTip');
+            // 用绝对地址，双击 file:// 打开本页时也能请求到接口（服务器已允许跨域）
+            const apiPoems = 'http://localhost:3004/api/poems';
+            const apiAuthors = 'http://localhost:3004/api/authors';
+
+            const yn_toJson = (res) => {
+                if (!res.ok) {
+                    throw new Error('接口响应异常：' + res.status);
+                }
+                return res.json();
+            };
+
+            Promise.all([
+                fetch(apiPoems).then(yn_toJson),
+                fetch(apiAuthors).then(yn_toJson)
+            ])
+                .then(([poems, authors]) => {
+                    yn_state.poems = poems;
+                    yn_state.authors = authors;
+                    yn_renderAuthors(authors);
+                    yn_applyView();
+                })
+                .catch(() => {
+                    tip.hidden = false;
+                });
+        }
+
+        /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
+         * 函数名：yn_bindEvents
+         * 简介：绑定搜索框的 input 事件（实时过滤）与排序按钮的 click 事件（切换标题长度排序），
+         *       排序状态通过按钮的 aria-pressed 属性体现
+         */
+        function yn_bindEvents() {
+            const search = document.getElementById('ynSearch');
+            const sortBtn = document.getElementById('ynSort');
+
+            search.addEventListener('input', () => {
+                yn_state.keyword = search.value;
+                yn_applyView();
+            });
+
+            sortBtn.addEventListener('click', () => {
+                yn_state.sorted = !yn_state.sorted;
+                sortBtn.setAttribute('aria-pressed', String(yn_state.sorted));
+                sortBtn.textContent = yn_state.sorted ? '恢复默认顺序' : '按标题长度排序';
+                yn_applyView();
+            });
+        }
+
+        yn_loadData();
+        yn_bindEvents();
+    </script>
+</body>
+
+</html>
