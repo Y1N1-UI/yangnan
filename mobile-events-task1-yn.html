@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<!--
+  作者：杨楠
+  建立时间：2026-11-17
+  使用模型：DeepSeek-V4.1-Flash
+  功能：移动端事件观察记录页 —— 把任务一 markdown 答卷转成可浏览的 HTML，
+        含 5 种操作的事件顺序表、验收三问、轨迹草图说明、touches vs changedTouches 坑
+-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>杨楠｜任务一 · 事件侦探</title>
+    <style>
+        :root {
+            --yn_ink: #1d2330;
+            --yn_muted: #77808f;
+            --yn_paper: #faf7f1;
+            --yn_card: #ffffff;
+            --yn_line: #e9e3d8;
+            --yn_accent: #0f766e;
+            --yn_soft: #e6f4f1;
+            --yn_hot: #c2410c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            max-width: 720px;
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: 20px 18px 40px;
+            color: var(--yn_ink);
+            background: var(--yn_paper);
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            line-height: 1.8;
+        }
+
+        .yn_topbar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 0.82rem;
+        }
+
+        .yn_back {
+            color: var(--yn_muted);
+            text-decoration: none;
+        }
+
+        .yn_page-title {
+            color: var(--yn_accent);
+            font-weight: 700;
+            letter-spacing: 0.14em;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .yn_meta {
+            margin-top: 6px;
+            color: var(--yn_muted);
+            font-size: 0.82rem;
+        }
+
+        .yn_section {
+            margin-top: 26px;
+        }
+
+        .yn_section h2 {
+            padding-bottom: 8px;
+            color: var(--yn_accent);
+            font-size: 0.95rem;
+            border-bottom: 2px solid var(--yn_soft);
+        }
+
+        /* 事件顺序表 */
+        .yn_table-wrap {
+            overflow-x: auto;
+            margin-top: 10px;
+            border: 1px solid var(--yn_line);
+            border-radius: 12px;
+            background: var(--yn_card);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--yn_line);
+            vertical-align: top;
+        }
+
+        th {
+            color: var(--yn_accent);
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+            background: var(--yn_soft);
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        .yn_op {
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        code {
+            padding: 1px 6px;
+            color: var(--yn_hot);
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8em;
+            background: #fff4ec;
+            border-radius: 4px;
+        }
+
+        /* 验收三问 */
+        .yn_qa {
+            margin-top: 12px;
+            padding: 14px 16px;
+            background: var(--yn_card);
+            border: 1px solid var(--yn_line);
+            border-radius: 12px;
+        }
+
+        .yn_qa h3 {
+            margin-bottom: 6px;
+            color: var(--yn_ink);
+            font-size: 0.88rem;
+        }
+
+        .yn_qa p {
+            color: var(--yn_muted);
+            font-size: 0.82rem;
+        }
+
+        /* 坑卡片 */
+        .yn_pitfall {
+            margin-top: 12px;
+            padding: 16px 18px;
+            background: linear-gradient(135deg, #fff7e4, #ffecd2);
+            border-left: 4px solid var(--yn_hot);
+            border-radius: 4px 14px 14px 4px;
+        }
+
+        .yn_pitfall h3 {
+            margin-bottom: 6px;
+            color: var(--yn_hot);
+            font-size: 0.85rem;
+        }
+
+        .yn_pitfall p {
+            color: #6b5744;
+            font-size: 0.82rem;
+        }
+
+        .yn_pitfall code {
+            background: rgba(194, 65, 12, 0.12);
+        }
+
+        /* 提示卡 */
+        .yn_note {
+            margin-top: 12px;
+            padding: 12px 14px;
+            color: #0f5f58;
+            font-size: 0.82rem;
+            background: var(--yn_soft);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="yn_topbar">
+        <a class="yn_back" href="index.html">← 返回首页</a>
+        <span class="yn_page-title">MOBILE EVENTS</span>
+    </div>
+
+    <h1>任务一 · 事件侦探</h1>
+    <p class="yn_meta">一次拖动到底发生了什么 · 5 种操作的事件顺序记录</p>
+
+    <section class="yn_section">
+        <h2>一、观察环境</h2>
+        <div class="yn_table-wrap">
+            <table>
+                <tr><th>项目</th><th>内容</th></tr>
+                <tr><td>设备</td><td>手机真机 + Chrome DevTools 设备模式（iPhone 12，触控模拟）</td></tr>
+                <tr><td>观察对象</td><td>课程页探针区，日志逐条打印事件名与坐标</td></tr>
+                <tr><td>记录方式</td><td>每次操作前点「清空日志」，操作后按打印顺序抄录</td></tr>
+            </table>
+        </div>
+    </section>
+
+    <section class="yn_section">
+        <h2>二、5 种操作的事件触发顺序</h2>
+        <div class="yn_table-wrap">
+            <table>
+                <tr><th>操作</th><th>事件顺序（从上到下为实际时间顺序）</th><th>关键观察</th></tr>
+                <tr>
+                    <td class="yn_op">① 单击</td>
+                    <td><code>touchstart</code> → <code>touchend</code> → <code>click</code></td>
+                    <td>没有 <code>touchmove</code>；<code>click</code> 是 <code>touchend</code> 之后系统补发的</td>
+                </tr>
+                <tr>
+                    <td class="yn_op">② 向上拖动</td>
+                    <td><code>touchstart</code> → <code>touchmove</code> × N → <code>touchend</code> →（<code>click</code> 可能不出现）</td>
+                    <td>拖动距离越长 N 越大；有位移时浏览器通常不再补发 <code>click</code></td>
+                </tr>
+                <tr>
+                    <td class="yn_op">③ 向左快速滑</td>
+                    <td><code>touchstart</code> → <code>touchmove</code> × 少量（次数少但单次位移大）→ <code>touchend</code></td>
+                    <td>快速滑动时 <code>touchmove</code> 次数少、每次位移大，不能靠"触发次数"判断距离</td>
+                </tr>
+                <tr>
+                    <td class="yn_op">④ 双指触摸</td>
+                    <td><code>touchstart</code>（<code>touches.length = 2</code>）→ <code>touchmove</code> × N → <code>touchend</code>（逐个手指抬起）</td>
+                    <td>两指抬起是<strong>两次</strong> <code>touchend</code>，不是一次</td>
+                </tr>
+                <tr>
+                    <td class="yn_op">⑤ 长按后抬起</td>
+                    <td><code>touchstart</code> →（长按期间无事件）→ <code>touchend</code> → <code>click</code></td>
+                    <td>长按期间页面静止，说明"长按"是靠计时器自己算出来的，不是原生事件</td>
+                </tr>
+            </table>
+        </div>
+    </section>
+
+    <section class="yn_section">
+        <h2>三、验收三问</h2>
+
+        <div class="yn_qa">
+            <h3>① 一次拖动里 <code>touchmove</code> 大约触发多少次？和距离有什么关系？</h3>
+            <p>几十次量级（普通速度拖满一屏约 30～60 次）。触发次数与<strong>时间</strong>强相关，与<strong>距离</strong>只是间接相关——浏览器大约每帧（16ms 左右）采样一次手指位置，所以拖得越久次数越多；同样的距离快速滑过，次数会明显变少但每次位移变大。因此判断手势是否成立要看<strong>累计位移 / 速度</strong>，不能数 <code>touchmove</code> 次数。</p>
+        </div>
+
+        <div class="yn_qa">
+            <h3>② <code>click</code> 出现在 <code>touchend</code> 之前还是之后？</h3>
+            <p>之后。<code>click</code> 是浏览器在 <code>touchend</code> 之后补发的一次"合成点击"，它要额外判断是否属于单击（没有明显位移、没被长按菜单拦截），所以会晚几十到几百毫秒。</p>
+        </div>
+
+        <div class="yn_qa">
+            <h3>③ 如果把 <code>touchend</code> 换成 <code>touchcancel</code>，会发生什么？</h3>
+            <p><code>touchcancel</code> 是系统<strong>打断</strong>手势时触发的（来电、消息横幅、系统手势返回、页面被切走），不是用户主动抬手。只监听 <code>touchcancel</code> 而不监听 <code>touchend</code> 的后果：正常抬手不会有任何回调 → 手势状态永远不复位；反过来只在 <code>touchend</code> 里清理、完全不管 <code>touchcancel</code>，一旦被打断，拖拽态同样残留。<strong>正确做法是两者共用同一个收尾函数</strong>。</p>
+        </div>
+    </section>
+
+    <section class="yn_section">
+        <h2>四、加分 · 轨迹草图说明</h2>
+        <p style="margin-top:10px;font-size:0.82rem;color:var(--yn_muted);">把日志里的坐标按顺序连起来，是一条"先慢后快"的折线：起步阶段点与点间距密（手指加速慢），中段间距变大（匀速），末段又变密（手指减速停下）。横向滑动的轨迹上下抖动很小，纵向拖动时左右抖动很小——说明可以用 <code>|dx|</code> 与 <code>|dy|</code> 的大小关系判断滑动主方向，任务二正是这么做的。</p>
+    </section>
+
+    <section class="yn_section">
+        <h2>五、遇到的一个坑</h2>
+        <div class="yn_pitfall">
+            <h3>⚠️ <code>touchend</code> 里取 <code>e.touches[0]</code> 得到 <code>undefined</code></h3>
+            <p><strong>原因</strong>：<code>touches</code> 只包含<strong>当前仍留在屏幕上</strong>的手指；<code>touchend</code> 触发时那根手指已经离开，<code>touches</code> 已变空。</p>
+            <p style="margin-top:6px;"><strong>解决</strong>：收尾时改用 <code>e.changedTouches[0]</code>——它专门保存"本次事件涉及的那根手指"，<code>touchstart / touchend / touchcancel</code> 都适用。</p>
+        </div>
+    </section>
+
+    <section class="yn_section">
+        <h2>六、提示词记录</h2>
+        <div class="yn_note">本任务使用的提示词已按课程要求追加到 <code>yn_prompt.md</code>。</div>
+    </section>
+</body>
+
+</html>
