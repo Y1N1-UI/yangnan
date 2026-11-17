@@ -500,6 +500,34 @@
             letter-spacing: 0.08em;
             text-align: center;
         }
+
+        .yn_demo {
+            margin-top: 22px;
+        }
+
+        .yn_demo-title {
+            margin-bottom: 10px;
+            color: var(--yn_accent);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+        }
+
+        .yn_demo video {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 18px;
+            box-shadow: 0 12px 28px rgba(30, 40, 60, 0.22);
+            background: #000;
+        }
+
+        .yn_demo p {
+            margin-top: 8px;
+            color: var(--yn_muted);
+            font-size: 0.78rem;
+            line-height: 1.7;
+        }
     </style>
 </head>
 
@@ -591,6 +619,21 @@
 
         <h2>为什么必须做降级</h2>
         <p>桌面浏览器大多没有加速度传感器，部分安卓浏览器不上报 devicemotion，iOS 又要求用户手势触发授权；只留"摇一摇"一条路，这三类用户会看到完全无响应的页面。所以保留「点我抽一次」和鼠标视差，任何设备都能完成交互。</p>
+    </section>
+
+    <section class="yn_demo" aria-label="手机效果演示">
+        <p class="yn_demo-title">📱 手机效果演示</p>
+        <video
+            src="img/renwu4.mp4"
+            controls
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata">
+            您的浏览器不支持 HTML5 video 标签
+        </video>
+        <p>手机上摇一摇抽菜谱 + 倾斜视差的完整演示（需 HTTPS 页面才会触发传感器）。</p>
     </section>
 
     <p class="yn_foot">杨楠 · 2026-11-16 · 高级网页设计 · 移动端传感器练习</p>

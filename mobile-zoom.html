@@ -146,6 +146,34 @@
         .yn_guide b {
             color: var(--yn_ink);
         }
+
+        .yn_demo {
+            margin-top: 22px;
+        }
+
+        .yn_demo-title {
+            margin-bottom: 10px;
+            color: var(--yn_accent);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+        }
+
+        .yn_demo video {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 18px;
+            box-shadow: 0 12px 28px rgba(30, 40, 60, 0.18);
+            background: #000;
+        }
+
+        .yn_demo p {
+            margin-top: 8px;
+            color: var(--yn_muted);
+            font-size: 0.78rem;
+            line-height: 1.7;
+        }
     </style>
 </head>
 
@@ -174,6 +202,21 @@
         双指旋转用 <b>Math.atan2</b> 比较两指连线在起始与当前时刻的角度差，手指转多少图片就转多少 ·
         1× 时不能拖出边界、不保留旋转 · 缩放与旋转状态保存在 JS 变量里，旋转屏幕不会丢失。
     </div>
+
+    <section class="yn_demo" aria-label="手机效果演示">
+        <p class="yn_demo-title">📱 手机效果演示</p>
+        <video
+            src="img/renwu3.mp4"
+            controls
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata">
+            您的浏览器不支持 HTML5 video 标签
+        </video>
+        <p>手机上录制的双指缩放、双指旋转、双击切换 1×/2×、放大后拖动边界的完整流程。</p>
+    </section>
 
     <script>
         /* 杨楠 | 2026-11-16 | DeepSeek-V4.1-Flash
