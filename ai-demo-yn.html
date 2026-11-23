@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<!--
+  作者：杨楠
+  建立时间：2026-11-23
+  使用模型：DeepSeek-V4.1-Flash
+  功能：AI 应用测试结果展示页 —— 五张课堂作业的运行截图，
+        涵盖在线客服、知识库问答、图像识别、语音识别四类能力
+-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>杨楠｜AI 应用测试结果</title>
+    <style>
+        :root {
+            --yn_ink: #1c2430;
+            --yn_muted: #7b8798;
+            --yn_paper: #faf7f1;
+            --yn_line: #e9e3d8;
+            --yn_accent: #0f766e;
+            --yn_soft: #e6f4f1;
+            --yn_tag: #f1e8d4;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            max-width: 560px;
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: 20px 18px 40px;
+            color: var(--yn_ink);
+            background: var(--yn_paper);
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            line-height: 1.7;
+        }
+
+        .yn_topbar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 0.82rem;
+        }
+
+        .yn_back {
+            color: var(--yn_muted);
+            text-decoration: none;
+        }
+
+        .yn_page-title {
+            color: var(--yn_accent);
+            font-weight: 700;
+            letter-spacing: 0.14em;
+        }
+
+        h1 {
+            font-size: 1.45rem;
+            letter-spacing: -0.02em;
+        }
+
+        .yn_sub {
+            margin-top: 6px;
+            color: var(--yn_muted);
+            font-size: 0.84rem;
+        }
+
+        /* 每张截图卡片 */
+        .yn_card {
+            margin-top: 22px;
+            padding: 14px;
+            background: #fff;
+            border: 1px solid var(--yn_line);
+            border-radius: 14px;
+            box-shadow: 0 1px 3px rgba(15, 118, 110, 0.04);
+        }
+
+        .yn_card-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .yn_tag-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: var(--yn_accent);
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .yn_card-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .yn_card-desc {
+            margin-top: 2px;
+            color: var(--yn_muted);
+            font-size: 0.78rem;
+        }
+
+        .yn_card img {
+            display: block;
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 分类标签 */
+        .yn_category {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 3px 10px;
+            color: var(--yn_accent);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            background: var(--yn_tag);
+            border-radius: 999px;
+        }
+
+        /* 说明区 */
+        .yn_intro {
+            margin-top: 18px;
+            padding: 14px 16px;
+            color: var(--yn_muted);
+            font-size: 0.82rem;
+            background: var(--yn_soft);
+            border-left: 4px solid var(--yn_accent);
+            border-radius: 4px 14px 14px 4px;
+        }
+
+        .yn_intro b {
+            color: var(--yn_ink);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="yn_topbar">
+        <a class="yn_back" href="index.html">← 返回首页</a>
+        <span class="yn_page-title">AI DEMO</span>
+    </div>
+
+    <h1>AI 应用测试结果</h1>
+    <p class="yn_sub">课堂作业运行截图 · 五项能力全部实现</p>
+
+    <div class="yn_intro">
+        <b>说明：</b>以下五张截图来自本地运行的 AI 应用（端口 8531），涵盖<b>在线客服（双服务商切换）</b>、<b>知识库问答</b>、<b>图像识别</b>、<b>语音识别</b>四类能力。在线客服同时接入硅基流动 DeepSeek-V4-Flash 与七牛 conatus-free，可一键切换继续对话。
+    </div>
+
+    <!-- 分类一：AI 助手 · 在线客服 -->
+    <span class="yn_category">AI 助手 · 在线客服</span>
+
+    <div class="yn_card">
+        <div class="yn_card-head">
+            <span class="yn_tag-num">1</span>
+            <div>
+                <div class="yn_card-title">AI 助手 · 在线客服（硅基流动）</div>
+                <div class="yn_card-desc">接入硅基流动 DeepSeek-V4-Flash，首轮对话回答网站功能介绍</div>
+            </div>
+        </div>
+        <img src="img/ai-chat-1.png" alt="AI 助手在线客服硅基流动对话截图">
+    </div>
+
+    <div class="yn_card">
+        <div class="yn_card-head">
+            <span class="yn_tag-num">2</span>
+            <div>
+                <div class="yn_card-title">AI 助手 · 切换七牛继续对话</div>
+                <div class="yn_card-desc">一键切换到七牛 conatus-free 服务商，上下文保持连续，继续回答后续提问</div>
+            </div>
+        </div>
+        <img src="img/ai-chat-2.png" alt="AI 助手切换七牛服务商后继续对话截图">
+    </div>
+
+    <!-- 分类二：知识库问答 -->
+    <span class="yn_category">知识库问答</span>
+
+    <div class="yn_card">
+        <div class="yn_card-head">
+            <span class="yn_tag-num">3</span>
+            <div>
+                <div class="yn_card-title">知识库问答（RAG 检索增强生成）</div>
+                <div class="yn_card-desc">支持上传 txt / md / pdf / docx / pptx，问答时引用文档片段作为答案来源</div>
+            </div>
+        </div>
+        <img src="img/ai-knowledge.png" alt="知识库问答界面截图">
+    </div>
+
+    <!-- 分类三：图像识别 -->
+    <span class="yn_category">图像识别</span>
+
+    <div class="yn_card">
+        <div class="yn_card-head">
+            <span class="yn_tag-num">4</span>
+            <div>
+                <div class="yn_card-title">图像识别 · 中文内容描述</div>
+                <div class="yn_card-desc">上传图片后 AI 自动识别主体、构图、色彩风格，生成结构化中文描述</div>
+            </div>
+        </div>
+        <img src="img/ai-image.png" alt="图像识别界面截图">
+    </div>
+
+    <!-- 分类四：语音识别 -->
+    <span class="yn_category">语音识别</span>
+
+    <div class="yn_card">
+        <div class="yn_card-head">
+            <span class="yn_tag-num">5</span>
+            <div>
+                <div class="yn_card-title">语音识别 · 录音转文字</div>
+                <div class="yn_card-desc">支持麦克风实时录音或上传音频文件（mp3 / wav / m4a / ogg / webm ≤25MB），模型为 Qwen-Audio-3.0-ASR-Flash</div>
+            </div>
+        </div>
+        <img src="img/ai-speech.png" alt="语音识别界面截图">
+    </div>
+</body>
+
+</html>
